@@ -706,8 +706,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function refreshTeleCode(acc) {
     if (!acc) return;
-    // Tạo mã xác thực ngẫu nhiên 6 ký tự cho mỗi phiên mở bot (hạn 5 phút)
-    currentTeleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    if (!currentTeleCode) {
+      currentTeleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
     if (btnOpenTelegramBot) {
       btnOpenTelegramBot.href = `https://t.me/${telegramBotUsername}?start=${acc.uid}_${currentTeleCode}`;
     }
@@ -726,6 +727,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch (_) { }
   }
+
+  // Preload bot username ngay khi khởi động trang
+  ensureTelegramBotInfo();
 
   // Helper chuyển đổi VAPID public key cho PushManager
   function urlBase64ToUint8Array(base64String) {
@@ -789,7 +793,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (teleCheckIcon) teleCheckIcon.innerHTML = '';
     if (teleCheckLabel) teleCheckLabel.textContent = 'Kiểm tra kết nối';
 
-    refreshTeleCode(acc);
+    currentTeleCode = null;
+    if (telegramBotUsernameLoaded) {
+      refreshTeleCode(acc);
+    } else {
+      ensureTelegramBotInfo().then(() => refreshTeleCode(acc));
+    }
     if (acc.telegramId) {
       toggleNotifyTele.checked = true;
       teleLinkedView.style.display = 'block';
@@ -951,16 +960,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Khi bấm "Mở Telegram Bot": tạo mã mới hạn 5 phút, hẹn giờ 10 giây sau tự gọi API check 1 lần duy nhất
-  btnOpenTelegramBot?.addEventListener('click', async () => {
+  // Khi bấm "Mở Telegram Bot": hẹn giờ 7 giây sau tự gọi API check 1 lần duy nhất
+  btnOpenTelegramBot?.addEventListener('click', () => {
     cancelTeleAutoTimer();
     const acc = accounts.find(a => a.uid === activeNotifyUid);
     if (!acc) return;
-
-    if (!telegramBotUsernameLoaded) {
-      await ensureTelegramBotInfo();
-    }
-    refreshTeleCode(acc);
 
     teleAutoCheckTimer = setTimeout(async () => {
       teleAutoCheckTimer = null;
@@ -969,7 +973,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (currentAcc && !currentAcc.telegramId && modalNotify.style.display !== 'none') {
         await checkTelegramStatus(true);
       }
-    }, 10000);
+    }, 7000);
   });
 
   // Kiểm tra kết nối Telegram (gọi 1 lần sau 10s hoặc khi người dùng chủ động bấm)

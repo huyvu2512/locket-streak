@@ -91,19 +91,14 @@ export default async function telegramHandler(req, res) {
         const text = (msg?.text || '').trim();
         const msgDate = Number(msg?.date) || 0;
 
-        // Bỏ qua tin nhắn đã quá hạn 5 phút (300 giây)
-        if (msgDate > 0 && (nowSec - msgDate > 300)) {
+        // Bỏ qua tin nhắn đã quá hạn 10 phút (600 giây)
+        if (msgDate > 0 && (nowSec - msgDate > 600)) {
           continue;
         }
 
         // Kiểm tra khớp UID
         const hasUid = text.includes(normalizedUid);
         if (!hasUid) continue;
-
-        // Nếu client có mã phiên teleCode, bắt buộc tin nhắn phải chứa teleCode
-        if (cleanTeleCode && !text.includes(cleanTeleCode)) {
-          continue;
-        }
 
         matchedChatId = msg?.chat?.id;
         senderName = msg?.from?.username 
