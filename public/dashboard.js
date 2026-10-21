@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Tính toán hiển thị chuỗi ngoài màn hình
       const todayYMD = getTodayYYYYMMDD();
       const lastDate = acc.lastStreakDate ? parseInt(acc.lastStreakDate, 10) : 0;
-      const isUpdatedToday = Boolean(acc.isMaintainedToday || (lastDate && lastDate === todayYMD));
+      const isUpdatedToday = Boolean(lastDate && lastDate >= todayYMD);
 
       let displayCount = acc.streakCount || 0;
       let displayDate = formatDate(lastDate);
@@ -1313,7 +1313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       diffDays = Math.round((todayUtc - lastUtc) / (86400 * 1000));
     }
 
-    const isUpdatedToday = Boolean(streak.isMaintainedToday || (lastDate && lastDate === todayYMD) || acc.isMaintainedToday);
+    const isUpdatedToday = Boolean(streak.isMaintainedToday || (lastDate && lastDate >= todayYMD));
     const isDead = diffDays > 2;
 
     let streakStatusBadge = '';

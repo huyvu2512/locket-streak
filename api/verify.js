@@ -263,7 +263,6 @@ export default async function verifyHandler(req, res) {
           avatarUrl,
           streakCount,
           lastStreakDate,
-          isMaintainedToday,
           refreshToken: loginResult.refreshToken,
           idToken: loginResult.idToken,
           sessionSecret,

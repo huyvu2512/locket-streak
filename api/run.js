@@ -456,8 +456,7 @@ export async function executeStreakForUser(uid) {
           await db.collection('users').doc(uid).set({
             lastStreakRunAt: getVietnamTime(),
             lastStreakStatus: 'already_updated',
-            lastStreakCount: latestStreak,
-            streakLastUpdated: todayYMD,
+            streakCount: latestStreak,
             lastStreakDate: todayYMD,
             lastStreakNotifiedDate: todayYMD // Đánh dấu hôm nay đã thông báo (chỉ thông báo duy nhất 1 lần)
           }, { merge: true });
@@ -482,8 +481,7 @@ export async function executeStreakForUser(uid) {
       await db.collection('users').doc(uid).set({
         lastStreakRunAt: getVietnamTime(),
         lastStreakStatus: 'success',
-        lastStreakCount: latestStreak,
-        streakLastUpdated: todayYMD,
+        streakCount: latestStreak,
         lastStreakDate: todayYMD,
         lastStreakNotifiedDate: todayYMD
       }, { merge: true });

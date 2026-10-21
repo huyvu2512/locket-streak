@@ -110,8 +110,8 @@ export default async function streakHandler(req, res) {
           createdAt: userData.createdAt || null,
           updatedAt: userData.updatedAt || null,
           tokenUpdatedAt: userData.tokenUpdatedAt || null,
-          streakLastUpdatedInDb: userData.streakLastUpdated || null,
-          streakCountInDb: userData.streakCount ?? null
+          streakLastUpdatedInDb: userData.lastStreakDate || userData.streakLastUpdated || null,
+          streakCountInDb: userData.streakCount ?? userData.lastStreakCount ?? null
         }
       }
     });

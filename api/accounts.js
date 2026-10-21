@@ -196,7 +196,7 @@ export default async function accountsHandler(req, res) {
             avatarUrl,
             streakCount: Number(userData.streakCount) || 0,
             lastStreakDate: Number(userData.lastStreakDate) || 0,
-            isMaintainedToday: Boolean(userData.isMaintainedToday),
+            isMaintainedToday: Number(userData.lastStreakDate) >= today,
             autoStreak: Boolean(userData.autoStreak),
             telegramId: userData.telegramId || null,
             discordId: userData.discordId || null,
