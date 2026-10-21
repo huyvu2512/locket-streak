@@ -52,9 +52,52 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-open-modal-mobile-top')?.addEventListener('click', openModal);
   btnCloseModal?.addEventListener('click', closeModal);
   btnModalCancel?.addEventListener('click', closeModal);
-  modalAddAcc?.addEventListener('click', (e) => {
-    if (e.target === modalAddAcc) closeModal();
-  });
+
+  /**
+   * Đóng modal an toàn khi click backdrop bên ngoài:
+   * Chỉ đóng khi CẢ mousedown VÀ mouseup đều xuất phát và kết thúc trực tiếp trên backdrop.
+   * Ngăn chặn triệt để tình trạng:
+   * - Bôi đen (drag text) trong ô input thả chuột ra ngoài backdrop bị tự tắt modal.
+   * - Chuyển từ tab khác sang hoặc click giữa các ô input bị vô tình đóng modal.
+   */
+  function setupSafeBackdropDismiss(modalOverlay, closeFn) {
+    if (!modalOverlay) return;
+    let isBackdropMouseDown = false;
+
+    modalOverlay.addEventListener('mousedown', (e) => {
+      isBackdropMouseDown = (e.target === modalOverlay);
+    });
+
+    modalOverlay.addEventListener('mouseup', (e) => {
+      if (isBackdropMouseDown && e.target === modalOverlay) {
+        closeFn();
+      }
+      isBackdropMouseDown = false;
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target !== modalOverlay) {
+        e.stopPropagation();
+      }
+    });
+
+    const card = modalOverlay.querySelector('.modal-card');
+    if (card) {
+      card.addEventListener('mousedown', (e) => {
+        isBackdropMouseDown = false;
+        e.stopPropagation();
+      });
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+
+    window.addEventListener('blur', () => {
+      isBackdropMouseDown = false;
+    });
+  }
+
+  setupSafeBackdropDismiss(modalAddAcc, closeModal);
 
   modalBtnEye?.addEventListener('click', () => {
     const isPass = modalPassword.type === 'password';
@@ -725,9 +768,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   btnCloseNotifyModal?.addEventListener('click', closeNotifyModal);
   btnCloseNotifyDone?.addEventListener('click', closeNotifyModal);
-  modalNotify?.addEventListener('click', (e) => {
-    if (e.target === modalNotify) closeNotifyModal();
-  });
+  setupSafeBackdropDismiss(modalNotify, closeNotifyModal);
 
   // Toggle Web Notifications (BẮT BUỘC ĐỢI API THÀNH CÔNG MỚI CHO GẠT)
   toggleNotifyWeb?.addEventListener('click', async (e) => {
@@ -1129,11 +1170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (btnCloseDetailModal) btnCloseDetailModal.addEventListener('click', closeDetailModal);
   if (btnCloseDetailDone) btnCloseDetailDone.addEventListener('click', closeDetailModal);
-  if (modalDetail) {
-    modalDetail.addEventListener('click', (e) => {
-      if (e.target === modalDetail) closeDetailModal();
-    });
-  }
+  setupSafeBackdropDismiss(modalDetail, closeDetailModal);
 
   function formatFullDateTime(val) {
     if (!val) return 'Chưa ghi nhận';
