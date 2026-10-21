@@ -37,9 +37,10 @@ export default async function pushHandler(req, res) {
   }
 
   const { action, uid, subscription, endpoint } = req.body || {};
+  const cleanUid = typeof uid === 'string' ? uid.trim() : '';
 
-  if (!uid) {
-    return res.status(400).json({ success: false, message: 'Thiếu UID tài khoản.' });
+  if (!cleanUid || !/^[a-zA-Z0-9_-]{10,64}$/.test(cleanUid)) {
+    return res.status(400).json({ success: false, message: 'Mã UID không hợp lệ.' });
   }
 
   if (!db) {
@@ -47,6 +48,14 @@ export default async function pushHandler(req, res) {
   }
 
   try {
+    const userDoc = await db.collection('users').doc(cleanUid).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tài khoản không tồn tại trong hệ thống.'
+      });
+    }
+
     // 2. Action: ĐĂNG KÝ (Subscribe) thiết bị này cho đúng UID
     if (action === 'subscribe') {
       if (!subscription || !subscription.endpoint || !subscription.keys) {
@@ -54,10 +63,10 @@ export default async function pushHandler(req, res) {
       }
 
       const endpointHash = getEndpointHash(subscription.endpoint);
-      const subRef = db.collection('users').doc(uid).collection('subscriptions').doc(endpointHash);
+      const subRef = db.collection('users').doc(cleanUid).collection('subscriptions').doc(endpointHash);
 
       await subRef.set({
-        uid,
+        uid: cleanUid,
         endpoint: subscription.endpoint,
         keys: subscription.keys,
         userAgent: req.headers['user-agent'] || '',
@@ -90,7 +99,7 @@ export default async function pushHandler(req, res) {
       const targetEndpoint = endpoint || subscription?.endpoint;
       if (targetEndpoint) {
         const endpointHash = getEndpointHash(targetEndpoint);
-        await db.collection('users').doc(uid).collection('subscriptions').doc(endpointHash).delete();
+        await db.collection('users').doc(cleanUid).collection('subscriptions').doc(endpointHash).delete();
       }
       return res.status(200).json({
         success: true,
@@ -105,7 +114,7 @@ export default async function pushHandler(req, res) {
         return res.status(200).json({ success: true, subscribed: false });
       }
       const endpointHash = getEndpointHash(targetEndpoint);
-      const doc = await db.collection('users').doc(uid).collection('subscriptions').doc(endpointHash).get();
+      const doc = await db.collection('users').doc(cleanUid).collection('subscriptions').doc(endpointHash).get();
       return res.status(200).json({
         success: true,
         subscribed: doc.exists

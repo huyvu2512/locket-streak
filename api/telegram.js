@@ -24,8 +24,10 @@ export default async function telegramHandler(req, res) {
   }
 
   const { action, uid, teleCode } = req.body || {};
-  if (!uid) {
-    return res.status(400).json({ success: false, message: 'Thiếu UID người dùng.' });
+  const cleanUid = typeof uid === 'string' ? uid.trim() : '';
+
+  if (!cleanUid || !/^[a-zA-Z0-9_-]{10,64}$/.test(cleanUid)) {
+    return res.status(400).json({ success: false, message: 'Mã UID không hợp lệ.' });
   }
 
   const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -37,10 +39,23 @@ export default async function telegramHandler(req, res) {
   }
 
   try {
+    let userRef = null;
+    let userDoc = null;
+    if (db) {
+      userRef = db.collection('users').doc(cleanUid);
+      userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Tài khoản không tồn tại trong hệ thống.'
+        });
+      }
+    }
+
     // 1. Huỷ liên kết
     if (action === 'unlink') {
-      if (db) {
-        await db.collection('users').doc(uid).set({ telegramId: null }, { merge: true });
+      if (userRef) {
+        await userRef.update({ telegramId: null });
       }
       return res.status(200).json({
         success: true,
@@ -101,20 +116,12 @@ export default async function telegramHandler(req, res) {
         const strChatId = String(matchedChatId);
 
         let accountName = 'Tài khoản Locket';
-        if (db) {
-          try {
-            const userDoc = await db.collection('users').doc(uid).get();
-            if (userDoc.exists) {
-              const uData = userDoc.data() || {};
-              accountName = uData.displayName || uData.username || uData.email || 'Tài khoản Locket';
-            }
-          } catch (e) {
-            console.warn('[Telegram] Lỗi đọc thông tin user từ DB:', e.message);
-          }
-
-          await db.collection('users').doc(uid).set({
+        if (userRef && userDoc && userDoc.exists) {
+          const uData = userDoc.data() || {};
+          accountName = uData.displayName || uData.username || uData.email || 'Tài khoản Locket';
+          await userRef.update({
             telegramId: strChatId
-          }, { merge: true });
+          });
         }
 
         // Gửi tin nhắn chào mừng và xác nhận đến Telegram của người dùng theo mẫu chuẩn

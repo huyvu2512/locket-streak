@@ -632,8 +632,14 @@ export default async function runHandler(req, res) {
   }
 
   const { uid } = req.body || {};
-  if (!uid) {
-    return res.status(400).json({ success: false, message: 'Thiếu UID người dùng.' });
+  const cleanUid = typeof uid === 'string' ? uid.trim() : '';
+
+  // Kiểm tra định dạng UID Locket (Firebase UID hợp lệ: chuỗi chữ số 10-64 ký tự, không chứa khoảng trắng hay tiếng Việt)
+  if (!cleanUid || !/^[a-zA-Z0-9_-]{10,64}$/.test(cleanUid)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Mã UID không hợp lệ hoặc chứa ký tự đặc biệt/khoảng trắng.'
+    });
   }
 
   // Kiểm tra nếu request từ Cron Worker có CRON_SECRET thì bỏ qua giới hạn tần suất
@@ -642,7 +648,7 @@ export default async function runHandler(req, res) {
   const isCronAuth = Boolean(cronSecret && authHeader && authHeader.replace(/^Bearer\s+/i, '').trim() === cronSecret);
 
   const now = Date.now();
-  const lastRunTime = runCooldowns.get(uid);
+  const lastRunTime = runCooldowns.get(cleanUid);
 
   if (!isCronAuth && lastRunTime && (now - lastRunTime < COOLDOWN_MS)) {
     const remaining = Math.ceil((COOLDOWN_MS - (now - lastRunTime)) / 1000);
@@ -655,21 +661,27 @@ export default async function runHandler(req, res) {
   }
 
   // Ghi nhận mốc thời gian gọi
-  runCooldowns.set(uid, now);
+  runCooldowns.set(cleanUid, now);
 
   try {
-    const result = await executeStreakForUser(uid);
+    const result = await executeStreakForUser(cleanUid);
     return res.status(200).json(result);
   } catch (error) {
-    console.error(`\x1b[31m  ✖ [Run Handler] Lỗi khi chạy cho ${uid.slice(0, 8)}...:\x1b[0m`, error.message);
+    console.error(`\x1b[31m  ✖ [Run Handler] Lỗi khi chạy cho ${cleanUid.slice(0, 8)}...:\x1b[0m`, error.message);
 
     if (db) {
       try {
-        await db.collection('users').doc(uid).set({
-          lastStreakRunAt: getVietnamTime(),
-          lastStreakStatus: 'error',
-          lastStreakError: error.message
-        }, { merge: true });
+        const uRef = db.collection('users').doc(cleanUid);
+        const uDoc = await uRef.get();
+        // CHỈ cập nhật thông tin lỗi nếu tài khoản THỰC SỰ tồn tại trong Firestore
+        // Tuyệt đối KHÔNG tự tạo mới document rác bằng .set({ merge: true })
+        if (uDoc.exists) {
+          await uRef.update({
+            lastStreakRunAt: getVietnamTime(),
+            lastStreakStatus: 'error',
+            lastStreakError: error.message
+          });
+        }
       } catch (e) {
         // ignore
       }

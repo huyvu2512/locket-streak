@@ -10,16 +10,17 @@ export default async function streakHandler(req, res) {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   }
 
-  const { uid } = req.body;
-  if (!uid) {
+  const { uid } = req.body || {};
+  const cleanUid = typeof uid === 'string' ? uid.trim() : '';
+  if (!cleanUid || !/^[a-zA-Z0-9_-]{10,64}$/.test(cleanUid)) {
     return res.status(400).json({
       success: false,
-      message: 'Yêu cầu không hợp lệ. Vui lòng cung cấp UID người dùng.'
+      message: 'Mã UID không hợp lệ hoặc chứa ký tự đặc biệt.'
     });
   }
 
   try {
-    const { idToken, userData } = await getValidToken(uid);
+    const { idToken, userData } = await getValidToken(cleanUid);
 
     const headers = getRandomLocketHeaders(idToken);
 

@@ -14,15 +14,30 @@ export default async function discordHandler(req, res) {
   }
 
   const { action, uid, webhookUrl } = req.body || {};
-  if (!uid) {
-    return res.status(400).json({ success: false, message: 'Thiếu UID người dùng.' });
+  const cleanUid = typeof uid === 'string' ? uid.trim() : '';
+
+  if (!cleanUid || !/^[a-zA-Z0-9_-]{10,64}$/.test(cleanUid)) {
+    return res.status(400).json({ success: false, message: 'Mã UID không hợp lệ.' });
   }
 
   try {
+    let userRef = null;
+    let userDoc = null;
+    if (db) {
+      userRef = db.collection('users').doc(cleanUid);
+      userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Tài khoản không tồn tại trong hệ thống.'
+        });
+      }
+    }
+
     // 1. Huỷ liên kết
     if (action === 'unlink') {
-      if (db) {
-        await db.collection('users').doc(uid).set({ discordId: null }, { merge: true });
+      if (userRef) {
+        await userRef.update({ discordId: null });
       }
       return res.status(200).json({
         success: true,
@@ -45,16 +60,9 @@ export default async function discordHandler(req, res) {
 
       // Lấy tên hiển thị của tài khoản
       let accountName = 'Tài khoản Locket';
-      if (db) {
-        try {
-          const userDoc = await db.collection('users').doc(uid).get();
-          if (userDoc.exists) {
-            const uData = userDoc.data() || {};
-            accountName = uData.displayName || uData.username || uData.email || 'Tài khoản Locket';
-          }
-        } catch (e) {
-          console.warn('[Discord] Lỗi đọc user từ DB:', e.message);
-        }
+      if (userDoc && userDoc.exists) {
+        const uData = userDoc.data() || {};
+        accountName = uData.displayName || uData.username || uData.email || 'Tài khoản Locket';
       }
 
       const timeStr = formatVietnamDateTime();
@@ -90,10 +98,10 @@ export default async function discordHandler(req, res) {
       }
 
       // Lưu vào Firestore
-      if (db) {
-        await db.collection('users').doc(uid).set({
+      if (userRef) {
+        await userRef.update({
           discordId: cleanUrl
-        }, { merge: true });
+        });
       }
 
       return res.status(200).json({
