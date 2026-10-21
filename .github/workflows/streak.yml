@@ -1,0 +1,57 @@
+name: Auto Locket Streak
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [trigger-streak]
+
+jobs:
+  keep-streak:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lấy danh sách tài khoản từ API Cron
+        id: fetch_accounts
+        env:
+          BASE_URL: ${{ secrets.API_BASE_URL || vars.API_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "Lỗi: Chưa cấu hình biến bí mật API_BASE_URL trong GitHub Secrets!"
+            exit 1
+          fi
+          URL="${BASE_URL%/}/api/cron"
+          echo "Đang kết nối lấy danh sách tài khoản..."
+          if [ -n "$CRON_SECRET" ]; then
+            RESPONSE=$(curl -s -H "Authorization: Bearer $CRON_SECRET" "$URL")
+          else
+            RESPONSE=$(curl -s "$URL")
+          fi
+          echo "Kết quả API: $RESPONSE"
+          UIDS=$(echo "$RESPONSE" | jq -c '.uids // []')
+          echo "uids=$UIDS" >> "$GITHUB_OUTPUT"
+
+      - name: Duy trì chuỗi từng tài khoản qua API Run
+        env:
+          BASE_URL: ${{ secrets.API_BASE_URL || vars.API_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          UID_LIST='${{ steps.fetch_accounts.outputs.uids }}'
+          echo "Danh sách UIDs cần chạy: $UID_LIST"
+          for uid in $(echo "$UID_LIST" | jq -r '.[]'); do
+            if [ -n "$uid" ] && [ "$uid" != "null" ]; then
+              echo ">>> Đang duy trì chuỗi cho UID: $uid"
+              if [ -n "$CRON_SECRET" ]; then
+                curl -s -X POST "${BASE_URL%/}/api/run" \
+                  -H "Content-Type: application/json" \
+                  -H "Authorization: Bearer $CRON_SECRET" \
+                  -d "{\"uid\":\"$uid\"}"
+              else
+                curl -s -X POST "${BASE_URL%/}/api/run" \
+                  -H "Content-Type: application/json" \
+                  -d "{\"uid\":\"$uid\"}"
+              fi
+              echo ""
+              sleep 3
+            fi
+          done
+          echo "Đã hoàn tất toàn bộ danh sách tài khoản."

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FFE091">
+  <meta name="description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+
+  <!-- Desktop PWA & Android Homescreen -->
+  <meta name="application-name" content="Locket Streak">
+
+  <!-- Favicon & Touch Icons for iOS and Android -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png?v=3">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png?v=3">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icon-512.png?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3">
+  <link rel="manifest" href="/manifest.json?v=3">
+
+  <!-- iOS Safari Add to Home Screen Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Locket Streak">
+
+  <!-- Open Graph & Social Share -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Locket Streak">
+  <meta property="og:description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+  <meta property="og:image" content="/assets/preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Locket Streak">
+  <meta name="twitter:description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+  <meta name="twitter:image" content="/assets/preview.png">
+
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <title>Locket Streak</title>
+  <link rel="stylesheet" href="/landing.css">
+</head>
+
+<body>
+
+  <header class="locket-header">
+    <div class="header-backdrop" aria-hidden="true">
+      <div class="backdrop-blur-1"></div>
+      <div class="backdrop-blur-2"></div>
+      <div class="backdrop-gradient"></div>
+    </div>
+    <nav class="locket-nav">
+      <!-- Left: Project Brand -->
+      <div class="nav-left">
+        <a href="/" class="brand-link" aria-label="Locket Streak">
+          <img src="/assets/logo.png" alt="Locket Streak" class="brand-logo-img">
+          <span class="brand-name">Locket Streak</span>
+        </a>
+      </div>
+
+      <!-- Center: Navigation Menu (5 tabs) -->
+      <ul class="nav-center">
+        <li><a href="/" class="nav-item active">Trang chủ</a></li>
+        <li><a href="/dashboard" class="nav-item">Quản lý</a></li>
+        <li><a href="/shortcuts" class="nav-item">Phím tắt</a></li>
+        <li><a href="/docs" class="nav-item">Tài liệu</a></li>
+        <li><a href="/terms" class="nav-item">Điều khoản</a></li>
+      </ul>
+
+      <!-- Right: Action Button & Mobile Toggle Button -->
+      <div class="nav-right">
+        <a href="/dashboard" class="nav-pill-cta desktop-only">Bắt đầu ngay</a>
+
+        <div class="mobile-toggle-wrap">
+          <button type="button" aria-label="Mở menu" aria-expanded="false" class="mobile-menu-btn" id="mobileMenuBtn">
+            <span class="burger-box" aria-hidden="true">
+              <span class="burger-bar burger-bar-top"></span>
+              <span class="burger-bar burger-bar-bottom"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-menu-drawer" id="mobileMenuDrawer" aria-hidden="true">
+      <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+      <div class="mobile-menu-content">
+        <ul class="mobile-nav-list">
+          <li><a href="/" class="mobile-nav-item active">Trang chủ</a></li>
+          <li><a href="/dashboard" class="mobile-nav-item">Quản lý</a></li>
+          <li><a href="/shortcuts" class="mobile-nav-item">Phím tắt</a></li>
+          <li><a href="/docs" class="mobile-nav-item">Tài liệu</a></li>
+          <li><a href="/terms" class="mobile-nav-item">Điều khoản</a></li>
+        </ul>
+        <div class="mobile-menu-cta-wrap">
+          <a href="/dashboard" class="btn-locket-primary mobile-cta-btn">Bắt đầu ngay</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Hero Section -->
+  <main class="page-main">
+    <section class="hero-section">
+      <h1 class="hero-headline">Locket Streak</h1>
+      <p class="hero-tagline">Tự động khôi phục & duy trì chuỗi Locket mỗi ngày</p>
+      <p class="hero-subtext">
+        Tự động nhận diện và khôi phục chuỗi khi bị gián đoạn. Vận hành thông minh, xử lý tức thì và bảo mật quyền riêng
+        tư tuyệt đối.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/dashboard" class="btn-locket-primary">Bắt đầu ngay</a>
+        <a href="#features" class="btn-locket-secondary">Tìm hiểu tính năng</a>
+      </div>
+
+      <div class="hero-stats-row">
+        <div class="stat-item">
+          <span class="stat-value">6 giờ</span>
+          <span class="stat-label">Chu kỳ quét tự động</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">100%</span>
+          <span class="stat-label">Tự xóa ảnh lưu trữ</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">Native</span>
+          <span class="stat-label">Giao thức Locket API</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section (Locket.com Shortcut Cards Style) -->
+    <section id="features" class="section-wrapper">
+      <div class="section-title-group">
+        <span class="section-kicker">Cơ chế hoạt động</span>
+        <h2 class="section-heading">Tự động, chuẩn xác và an toàn tuyệt đối</h2>
+      </div>
+
+      <div class="shortcuts-grid">
+        <div class="shortcut-card">
+          <span class="card-num">01</span>
+          <h3 class="card-title">Tự động khôi phục chuỗi bị mất</h3>
+          <p class="card-desc">
+            Khi phát hiện bị đứt chuỗi trong 1 hoặc 2 ngày gần nhất, hệ thống tự động gọi giao thức khôi phục tuần tự
+            từng ngày bị mất trước, sau đó mới cập nhật chuỗi cho ngày hôm nay (tối đa trong vòng 2 ngày theo chuẩn Locket).
+          </p>
+        </div>
+
+        <div class="shortcut-card">
+          <span class="card-num">02</span>
+          <h3 class="card-title">Tự động xóa ảnh trong vài giây</h3>
+          <p class="card-desc">
+            Ảnh tạm được tải lên chỉ nhằm mục đích kích hoạt máy chủ Locket ghi nhận chuỗi. Ngay sau khi phản hồi thành
+            công, ảnh được xóa vĩnh viễn khỏi tài khoản của bạn để bảng tin luôn sạch sẽ.
+          </p>
+        </div>
+
+        <div class="shortcut-card">
+          <span class="card-num">03</span>
+          <h3 class="card-title">Quản lý đa tài khoản tiện lợi</h3>
+          <p class="card-desc">
+            Hỗ trợ theo dõi và quản lý nhiều tài khoản Locket cùng lúc trên một giao diện trực quan. Dễ dàng kiểm tra số
+            ngày chuỗi, tiến trình chạy gần nhất và tùy chỉnh bật/tắt riêng biệt cho từng nick.
+          </p>
+        </div>
+
+
+        <div class="shortcut-card">
+          <span class="card-num">04</span>
+          <h3 class="card-title">Thông báo & Cảnh báo lỗi tức thì</h3>
+          <p class="card-desc">
+            Tự động gửi thông báo qua Telegram Bot hoặc Discord Webhook khi giữ chuỗi thành công, đồng thời phát cảnh báo
+            khẩn cấp khi token hết hạn hoặc có sự cố để bạn kịp thời liên hệ hỗ trợ.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schedule Section (Quy trình 6h) -->
+    <section id="schedule" class="section-wrapper">
+      <div class="section-title-group">
+        <span class="section-kicker">Quy trình vận hành</span>
+        <h2 class="section-heading">4 khung giờ kiểm tra chuỗi mỗi ngày</h2>
+      </div>
+
+      <div class="schedule-grid">
+        <div class="schedule-pill">
+          <span class="schedule-time">00:00</span>
+          <span class="schedule-phase">Đêm</span>
+          <span class="schedule-desc">Quét & giữ chuỗi đợt 1</span>
+        </div>
+
+        <div class="schedule-pill">
+          <span class="schedule-time">06:00</span>
+          <span class="schedule-phase">Sáng</span>
+          <span class="schedule-desc">Quét kiểm tra dự phòng</span>
+        </div>
+
+        <div class="schedule-pill">
+          <span class="schedule-time">12:00</span>
+          <span class="schedule-phase">Trưa</span>
+          <span class="schedule-desc">Quét kiểm tra dự phòng</span>
+        </div>
+
+        <div class="schedule-pill">
+          <span class="schedule-time">18:00</span>
+          <span class="schedule-phase">Tối</span>
+          <span class="schedule-desc">Quét chốt an toàn cuối ngày</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terms Summary Section -->
+    <section id="terms" class="section-wrapper">
+      <div class="terms-summary-card">
+        <div class="terms-text-side">
+          <h3 class="terms-title">Điều khoản & Cam kết bảo mật</h3>
+          <p class="terms-paragraph">
+            Locket Streak là công cụ độc lập hỗ trợ bạn tự động duy trì và khôi phục chuỗi Locket cá nhân (tối đa trong vòng 2 ngày gần nhất). Hệ thống cam kết bảo mật tuyệt đối: không lưu trữ mật khẩu thô, mã hóa an toàn phiên kết nối qua SSL, tự động xoá khoảnh khắc ngay tức thì, và bạn có toàn quyền xóa vĩnh viễn dữ liệu khỏi hệ thống bất cứ lúc nào.
+          </p>
+        </div>
+        <div class="terms-btn-side">
+          <a href="/terms" class="btn-locket-secondary">Xem toàn bộ điều khoản</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Locket.com Exact Footer -->
+  <footer class="locket-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-brand">
+          <img src="/assets/logo.png" alt="Locket Streak" class="footer-logo-img">
+          <span class="footer-title">Locket Streak</span>
+        </div>
+        <p class="footer-slogan">Tự động khôi phục & duy trì chuỗi Locket mỗi ngày</p>
+        <p class="footer-copyright">&copy; 2026 Locket Streak</p>
+      </div>
+
+      <nav class="footer-nav-group" aria-label="Điều hướng chân trang">
+        <div class="footer-nav-row">
+          <a href="/" class="footer-nav-link active">Trang chủ</a>
+          <a href="/dashboard" class="footer-nav-link">Quản lý</a>
+          <a href="/shortcuts" class="footer-nav-link">Phím tắt</a>
+        </div>
+        <div class="footer-nav-row">
+          <a href="/docs" class="footer-nav-link">Tài liệu</a>
+          <a href="/terms" class="footer-nav-link">Điều khoản</a>
+        </div>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // Mobile Menu Drawer Controller
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenuDrawer = document.getElementById('mobileMenuDrawer');
+      const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+
+      function toggleMobileMenu(force) {
+        if (!mobileMenuBtn || !mobileMenuDrawer) return;
+        const isOpen = force !== undefined ? force : !mobileMenuDrawer.classList.contains('is-open');
+        mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        mobileMenuDrawer.classList.toggle('is-open', isOpen);
+        mobileMenuDrawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      }
+
+      if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => toggleMobileMenu());
+      }
+      if (mobileMenuBackdrop) {
+        mobileMenuBackdrop.addEventListener('click', () => toggleMobileMenu(false));
+      }
+      document.querySelectorAll('.mobile-nav-item, .mobile-cta-btn').forEach(item => {
+        item.addEventListener('click', () => toggleMobileMenu(false));
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileMenuDrawer && mobileMenuDrawer.classList.contains('is-open')) {
+          toggleMobileMenu(false);
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>

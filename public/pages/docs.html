@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FFE091">
+  <meta name="description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+
+  <!-- Desktop PWA & Android Homescreen -->
+  <meta name="application-name" content="Locket Streak">
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png?v=3">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png?v=3">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icon-512.png?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3">
+  <link rel="manifest" href="/manifest.json?v=3">
+
+  <!-- iOS Safari Add to Home Screen Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Locket Streak">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Locket Streak">
+  <meta property="og:description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+  <meta property="og:image" content="/assets/preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Locket Streak">
+  <meta name="twitter:description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+  <meta name="twitter:image" content="/assets/preview.png">
+
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <title>Locket Streak</title>
+  <link rel="stylesheet" href="/landing.css">
+  <style>
+    .code-box {
+      background: #18181b;
+      color: #f4f4f5;
+      padding: 16px 18px;
+      border-radius: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      overflow-x: auto;
+      max-width: 100%;
+      box-sizing: border-box;
+      margin: 8px 0 16px 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .code-box code {
+      font-family: inherit;
+      white-space: pre;
+      word-break: normal;
+    }
+    code {
+      word-break: break-all;
+      overflow-wrap: anywhere;
+    }
+    .http-method {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      margin-right: 8px;
+    }
+    .method-post {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    .method-get {
+      background: #E3F2FD;
+      color: #1565C0;
+    }
+    .endpoint-badge {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+    .param-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-muted);
+      margin-top: 14px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="locket-header">
+    <div class="header-backdrop" aria-hidden="true">
+      <div class="backdrop-blur-1"></div>
+      <div class="backdrop-blur-2"></div>
+      <div class="backdrop-gradient"></div>
+    </div>
+    <nav class="locket-nav">
+      <!-- Left: Project Brand -->
+      <div class="nav-left">
+        <a href="/" class="brand-link" aria-label="Locket Streak">
+          <img src="/assets/logo.png" alt="Locket Streak" class="brand-logo-img">
+          <span class="brand-name">Locket Streak</span>
+        </a>
+      </div>
+
+      <!-- Center: Navigation Menu (5 tabs) -->
+      <ul class="nav-center">
+        <li><a href="/" class="nav-item">Trang chủ</a></li>
+        <li><a href="/dashboard" class="nav-item">Quản lý</a></li>
+        <li><a href="/shortcuts" class="nav-item">Phím tắt</a></li>
+        <li><a href="/docs" class="nav-item active">Tài liệu</a></li>
+        <li><a href="/terms" class="nav-item">Điều khoản</a></li>
+      </ul>
+
+      <!-- Right: Action Button & Mobile Toggle Button -->
+      <div class="nav-right">
+        <a href="/dashboard" class="nav-pill-cta desktop-only">Bắt đầu ngay</a>
+
+        <div class="mobile-toggle-wrap">
+          <button type="button" aria-label="Mở menu" aria-expanded="false" class="mobile-menu-btn" id="mobileMenuBtn">
+            <span class="burger-box" aria-hidden="true">
+              <span class="burger-bar burger-bar-top"></span>
+              <span class="burger-bar burger-bar-bottom"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-menu-drawer" id="mobileMenuDrawer" aria-hidden="true">
+      <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+      <div class="mobile-menu-content">
+        <ul class="mobile-nav-list">
+          <li><a href="/" class="mobile-nav-item">Trang chủ</a></li>
+          <li><a href="/dashboard" class="mobile-nav-item">Quản lý</a></li>
+          <li><a href="/shortcuts" class="mobile-nav-item">Phím tắt</a></li>
+          <li><a href="/docs" class="mobile-nav-item active">Tài liệu</a></li>
+          <li><a href="/terms" class="mobile-nav-item">Điều khoản</a></li>
+        </ul>
+        <div class="mobile-menu-cta-wrap">
+          <a href="/dashboard" class="btn-locket-primary mobile-cta-btn">Bắt đầu ngay</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Section -->
+  <main class="page-main">
+    <section class="section-wrapper" style="max-width: 860px; padding-top: 50px;">
+      <div class="section-title-group">
+        <span class="section-kicker">API Reference</span>
+        <h1 class="section-heading" style="font-size: 40px; margin-bottom: 12px;">Tài liệu API</h1>
+        <p style="font-size: 15px; color: var(--color-muted);">Đặc tả kỹ thuật các điểm cuối (endpoints), phương thức yêu cầu và định dạng dữ liệu JSON.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- 1. POST /api/run -->
+        <div class="shortcut-card" style="border-radius: 24px; padding: 28px;">
+          <div style="margin-bottom: 8px;">
+            <span class="http-method method-post">POST</span>
+            <span class="endpoint-badge">/api/run</span>
+          </div>
+          <p class="card-desc" style="margin-bottom: 14px;">Kích hoạt duy trì hoặc khôi phục bù chuỗi cho tài khoản của bạn bằng UID cá nhân.</p>
+
+          <div class="param-label">Request Body (JSON)</div>
+          <pre class="code-box"><code>{
+  "uid": "YOUR_LOCKET_UID"
+}</code></pre>
+
+          <div class="param-label">Response 200 (Thành công)</div>
+          <pre class="code-box"><code>{
+  "success": true,
+  "alreadyUpdated": false,
+  "restoredDates": [],
+  "updatedToday": true,
+  "streakCount": 206,
+  "message": "Duy trì chuỗi hôm nay thành công! Chuỗi hiện tại: 206 ngày."
+}</code></pre>
+
+          <div class="param-label">Response 400 / 500 (Lỗi)</div>
+          <pre class="code-box"><code>{
+  "success": false,
+  "message": "Thiếu UID người dùng hoặc phiên đăng nhập đã hết hạn."
+}</code></pre>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="locket-footer" style="margin-top: 60px;">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-brand">
+          <img src="/assets/logo.png" alt="Locket Streak" class="footer-logo-img">
+          <span class="footer-title">Locket Streak</span>
+        </div>
+        <p class="footer-slogan">Tự động khôi phục & duy trì chuỗi Locket mỗi ngày</p>
+        <p class="footer-copyright">&copy; 2026 Locket Streak</p>
+      </div>
+
+      <nav class="footer-nav-group" aria-label="Điều hướng chân trang">
+        <div class="footer-nav-row">
+          <a href="/" class="footer-nav-link">Trang chủ</a>
+          <a href="/dashboard" class="footer-nav-link">Quản lý</a>
+          <a href="/shortcuts" class="footer-nav-link">Phím tắt</a>
+        </div>
+        <div class="footer-nav-row">
+          <a href="/docs" class="footer-nav-link active">Tài liệu</a>
+          <a href="/terms" class="footer-nav-link">Điều khoản</a>
+        </div>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenuDrawer = document.getElementById('mobileMenuDrawer');
+      const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+
+      function toggleMobileMenu(force) {
+        if (!mobileMenuBtn || !mobileMenuDrawer) return;
+        const isOpen = force !== undefined ? force : !mobileMenuDrawer.classList.contains('is-open');
+        mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        mobileMenuDrawer.classList.toggle('is-open', isOpen);
+        mobileMenuDrawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      }
+
+      if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => toggleMobileMenu());
+      }
+      if (mobileMenuBackdrop) {
+        mobileMenuBackdrop.addEventListener('click', () => toggleMobileMenu(false));
+      }
+      document.querySelectorAll('.mobile-nav-item, .mobile-cta-btn').forEach(item => {
+        item.addEventListener('click', () => toggleMobileMenu(false));
+      });
+    })();
+  </script>
+</body>
+
+</html>

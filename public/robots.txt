@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://streak.huyvu2512.io.vn/sitemap.xml

@@ -1,0 +1,28 @@
+{
+  "name": "Locket Streak",
+  "short_name": "Locket Streak",
+  "description": "Tự động khôi phục & duy trì chuỗi Locket mỗi ngày",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFE091",
+  "theme_color": "#FFE091",
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FFE091">
+  <meta name="description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+
+  <!-- Desktop PWA & Android Homescreen -->
+  <meta name="application-name" content="Locket Streak">
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png?v=3">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png?v=3">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icon-512.png?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v=3">
+  <link rel="manifest" href="/manifest.json?v=3">
+
+  <!-- iOS Safari Add to Home Screen Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Locket Streak">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Locket Streak">
+  <meta property="og:description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+  <meta property="og:image" content="/assets/preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Locket Streak">
+  <meta name="twitter:description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
+  <meta name="twitter:image" content="/assets/preview.png">
+
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <title>Locket Streak</title>
+  <link rel="stylesheet" href="/dashboard.css">
+</head>
+
+<body>
+
+  <header class="locket-header">
+    <div class="header-backdrop" aria-hidden="true">
+      <div class="backdrop-blur-1"></div>
+      <div class="backdrop-blur-2"></div>
+      <div class="backdrop-gradient"></div>
+    </div>
+    <nav class="locket-nav">
+      <!-- Left: Project Brand -->
+      <div class="nav-left">
+        <a href="/" class="brand-link" aria-label="Locket Streak">
+          <img src="/assets/logo.png" alt="Locket Streak" class="brand-logo-img">
+          <span class="brand-name">Locket Streak</span>
+        </a>
+      </div>
+
+      <!-- Center: Navigation Menu (5 tabs) -->
+      <ul class="nav-center">
+        <li><a href="/" class="nav-item">Trang chủ</a></li>
+        <li><a href="/dashboard" class="nav-item active">Quản lý</a></li>
+        <li><a href="/shortcuts" class="nav-item">Phím tắt</a></li>
+        <li><a href="/docs" class="nav-item">Tài liệu</a></li>
+        <li><a href="/terms" class="nav-item">Điều khoản</a></li>
+      </ul>
+
+      <!-- Right: Action Button & Mobile Toggle Button -->
+      <div class="nav-right" style="gap: 10px;">
+        <button type="button" class="nav-pill-cta desktop-only" id="btn-open-modal">+ Thêm tài khoản</button>
+
+        <div class="mobile-toggle-wrap">
+          <button type="button" aria-label="Mở menu" aria-expanded="false" class="mobile-menu-btn" id="mobileMenuBtn">
+            <span class="burger-box" aria-hidden="true">
+              <span class="burger-bar burger-bar-top"></span>
+              <span class="burger-bar burger-bar-bottom"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-menu-drawer" id="mobileMenuDrawer" aria-hidden="true">
+      <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+      <div class="mobile-menu-content">
+        <ul class="mobile-nav-list">
+          <li><a href="/" class="mobile-nav-item">Trang chủ</a></li>
+          <li><a href="/dashboard" class="mobile-nav-item active">Quản lý</a></li>
+          <li><a href="/shortcuts" class="mobile-nav-item">Phím tắt</a></li>
+          <li><a href="/docs" class="mobile-nav-item">Tài liệu</a></li>
+          <li><a href="/terms" class="mobile-nav-item">Điều khoản</a></li>
+        </ul>
+        <div class="mobile-menu-cta-wrap">
+          <button type="button" class="btn-locket-primary mobile-cta-btn" id="mobile-btn-open-modal">+ Thêm tài
+            khoản</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="dash-main">
+    <div class="dash-container">
+
+      <!-- Top Bar: Account Count & Batch Actions -->
+      <div class="dash-bar">
+        <div class="dash-bar-header">
+          <span class="dash-bar-title" id="bar-account-count">0 tài khoản</span>
+          <button type="button" class="mobile-add-btn" id="btn-open-modal-mobile-top">
+            <svg class="btn-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Thêm tài khoản</span>
+          </button>
+        </div>
+        <div class="dash-bar-actions">
+          <button type="button" class="dash-action-btn btn-scan" id="btn-scan-all"
+            title="Cập nhật chuỗi mới nhất từ Locket">
+            <svg class="btn-icon btn-icon-reload" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            <span id="btn-scan-label">Quét lại</span>
+          </button>
+          <button type="button" class="dash-action-btn btn-run-all" id="btn-run-all"
+            title="Duy trì chuỗi cho tất cả tài khoản">
+            <svg class="btn-icon btn-icon-lightning" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            <span id="btn-run-all-label">Chạy tất cả</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Account Cards List -->
+      <div class="accounts-wrapper" id="accounts-wrapper">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal: Thêm Tài Khoản -->
+  <div class="modal-overlay" id="modal-add-acc" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Thêm tài khoản Locket</span>
+        <button type="button" class="btn-close" id="btn-close-modal">&times;</button>
+      </div>
+
+      <form id="form-add-acc" autocomplete="off">
+        <div class="modal-body">
+          <div class="field">
+            <label class="field-label" for="modal-email">Email</label>
+            <input type="email" id="modal-email" class="field-input" placeholder="email@gmail.com" required
+              inputmode="email">
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="modal-password">Mật khẩu</label>
+            <div class="input-password-wrap">
+              <input type="password" id="modal-password" class="field-input field-input-pwd" placeholder="••••••••"
+                required>
+              <button type="button" class="btn-eye-toggle" id="modal-btn-eye" aria-label="Hiện hoặc ẩn mật khẩu">
+                <svg class="eye-icon eye-icon-show" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-icon eye-icon-hide" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  style="display: none;">
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                  </path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-feedback" id="modal-feedback" style="display: none;"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-sm" id="btn-modal-cancel">Hủy</button>
+          <button type="submit" class="btn-main" id="btn-modal-submit">
+            <span class="spinner" id="modal-spinner"></span>
+            <span id="modal-btn-label">Thêm tài khoản</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Cài Đặt Nhận Thông Báo -->
+  <div class="modal-overlay" id="modal-notify" style="display: none;">
+    <div class="modal-card modal-card-notify">
+      <div class="modal-header">
+        <div>
+          <span class="modal-title">Cài đặt thông báo</span>
+          <div class="modal-subtitle" id="notify-modal-user">cho tài khoản ...</div>
+        </div>
+        <button type="button" class="btn-close" id="btn-close-notify-modal">&times;</button>
+      </div>
+
+      <div class="modal-body notify-body">
+        <!-- Kênh 1: Thông báo Web (Trình duyệt) -->
+        <div class="notify-channel-card">
+          <div class="notify-channel-top">
+            <div class="notify-channel-info">
+              <div class="notify-channel-icon-wrap icon-web">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                  </path>
+                </svg>
+              </div>
+              <div>
+                <span class="notify-channel-title">Thông báo Web</span>
+                <span class="notify-channel-desc">Hiển thị thông báo trình duyệt khi chuỗi được giữ</span>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-notify-web">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Kênh 2: Telegram -->
+        <div class="notify-channel-card">
+          <div class="notify-channel-top">
+            <div class="notify-channel-info">
+              <div class="notify-channel-icon-wrap icon-telegram">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </div>
+              <div>
+                <span class="notify-channel-title">Telegram Bot</span>
+                <span class="notify-channel-desc">Nhận tin nhắn báo chuỗi trực tiếp qua bot Telegram</span>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-notify-tele">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Chi tiết kết nối Telegram luôn hiện sẵn -->
+          <div class="notify-expand-box" id="tele-expand-box">
+            <!-- Khi chưa kết nối: hiện 2 nút -->
+            <div id="tele-unlinked-view">
+              <div class="notify-action-btns">
+                <a href="#" target="_blank" class="btn-main btn-sm-action btn-no-underline" id="btn-open-telegram-bot">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                  Mở Telegram Bot
+                </a>
+                <button type="button" class="btn-sm btn-sm-action" id="btn-check-telegram-link">
+                  <span class="btn-state-icon" id="tele-check-icon"></span>
+                  <span id="tele-check-label">Kiểm tra kết nối</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Khi đã kết nối: hiện ID -->
+            <div id="tele-linked-view" style="display: none;">
+              <div class="notify-linked-pill">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Đã kết nối: <strong id="tele-connected-id">...</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kênh 3: Discord Webhook -->
+        <div class="notify-channel-card">
+          <div class="notify-channel-top">
+            <div class="notify-channel-info">
+              <div class="notify-channel-icon-wrap icon-discord">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                </svg>
+              </div>
+              <div>
+                <span class="notify-channel-title">Discord Webhook</span>
+                <span class="notify-channel-desc">Nhận thông báo qua kênh Discord riêng tư của bạn</span>
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-notify-discord">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Chi tiết kết nối Discord luôn hiện sẵn -->
+          <div class="notify-expand-box" id="discord-expand-box">
+            <!-- Khi chưa kết nối: hiện ô dán URL và nút kiểm tra lưu -->
+            <div id="discord-unlinked-view">
+              <div class="notify-action-row">
+                <input type="url" id="discord-webhook-url" class="field-input"
+                  placeholder="Dán Discord Webhook URL tại đây..." autocomplete="off">
+                <button type="button" class="btn-main btn-sm-action" id="btn-save-discord-webhook">
+                  <span class="spinner" id="discord-save-spinner"></span>
+                  <span id="discord-save-label">Kiểm tra &amp; Lưu</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Khi đã kết nối: hiện trạng thái -->
+            <div id="discord-linked-view" style="display: none;">
+              <div class="notify-linked-pill">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Đã kết nối Discord Webhook</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-main" id="btn-close-notify-done">Hoàn tất</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Chi Tiết Tài Khoản & Dữ Liệu DB -->
+  <div class="modal-overlay" id="modal-detail" style="display: none;">
+    <div class="modal-card modal-card-detail">
+      <div class="modal-header">
+        <div>
+          <span class="modal-title">Chi tiết tài khoản</span>
+          <div class="modal-subtitle" id="detail-modal-user">Thông tin tài khoản &amp; chuỗi</div>
+        </div>
+        <button type="button" class="btn-close" id="btn-close-detail-modal">&times;</button>
+      </div>
+
+      <div class="modal-body" id="detail-modal-body">
+        <!-- Rendered dynamically with skeleton shimmer -->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-main" id="btn-close-detail-done">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/dashboard.js"></script>
+</body>
+
+</html>
