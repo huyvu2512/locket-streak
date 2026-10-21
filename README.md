@@ -87,14 +87,20 @@ locket-streak/
 │   └── verify.js                 # Xác thực tài khoản Locket & làm mới Token
 ├── public/                       # Giao diện người dùng & tài nguyên tĩnh
 │   ├── assets/                   # Biểu tượng, logo, preview minh họa
+│   ├── pages/                    # Các trang con độc lập
+│   │   ├── dashboard.html        # Bảng điều khiển quản trị tài khoản
+│   │   ├── docs.html             # Tài liệu đặc tả API & hướng dẫn
+│   │   ├── shortcuts.html        # Hướng dẫn Apple Shortcuts cho iOS
+│   │   └── terms.html            # Điều khoản dịch vụ & quyền riêng tư
 │   ├── dashboard.css             # Stylesheet Dark Theme responsive cho Dashboard
 │   ├── dashboard.js              # Xử lý tương tác, modal, Web Push phía client
 │   ├── index.html                # Trang đăng nhập & giới thiệu chính
-│   ├── dashboard.html            # Bảng điều khiển quản trị tài khoản
+│   ├── landing.css               # Stylesheet trang chủ Landing page
 │   ├── manifest.json             # Cấu hình Progressive Web App (PWA)
+│   ├── sitemap.xml               # Sơ đồ trang web phục vụ SEO
 │   └── sw.js                     # Service Worker xử lý sự kiện Push Notification ngầm
 ├── scripts/                      # Các công cụ hỗ trợ và kịch bản bảo trì
-│   └── migrate-cleanup.js        # Kịch bản dọn dẹp dữ liệu Firestore
+│   └── cleanup-db.js             # Kịch bản kiểm tra toàn vẹn và dọn dẹp Firestore
 ├── .env.example                  # Mẫu thiết lập biến môi trường
 ├── LICENSE                       # Giấy phép mã nguồn mở MIT
 ├── package.json                  # Thông tin gói phụ thuộc và scripts dự án

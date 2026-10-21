@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch-path=server.js --watch-path=api server.js"
+    "dev": "node --watch-path=server.js --watch-path=api server.js",
+    "cleanup:db": "node scripts/cleanup-db.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
