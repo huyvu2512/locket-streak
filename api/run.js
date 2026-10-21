@@ -6,10 +6,10 @@ import webpush from 'web-push';
 import { db } from './db.js';
 import { getValidToken, getVietnamTodayNumber, getVietnamTime, formatVietnamDateTime, getRandomLocketHeaders, getRandomDelay, LOCKET_API_URL, LOCKET_STORAGE_URL, LOCKET_STORAGE_BUCKET } from './verify.js';
 
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT) {
   try {
     webpush.setVapidDetails(
-      process.env.VAPID_SUBJECT || 'mailto:admin@streak.huyvu2512.io.vn',
+      process.env.VAPID_SUBJECT,
       process.env.VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY
     );

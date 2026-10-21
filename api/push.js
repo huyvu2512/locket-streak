@@ -4,9 +4,9 @@ import { db } from './db.js';
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@streak.huyvu2512.io.vn';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || '';
 
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && VAPID_SUBJECT) {
   try {
     webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   } catch (err) {
