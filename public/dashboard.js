@@ -743,11 +743,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     return outputArray;
   }
 
-  // Tự động đăng ký Service Worker cho Web Push PWA
+  // Kiểm tra trạng thái Web Push trên thiết bị hiện tại (đồng bộ tức thì 0ms như Tele và Discord)
+  function isWebPushActive(uid) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      return false;
+    }
+    return localStorage.getItem('locket_webpush_' + uid) === 'true';
+  }
+
+  // Tự động đăng ký Service Worker cho Web Push PWA và đồng bộ ngầm khi mở trang
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(err => {
       console.warn('[SW] Không thể đăng ký sw.js:', err.message);
     });
+
+    if ('PushManager' in window && 'Notification' in window && Notification.permission === 'granted') {
+      navigator.serviceWorker.ready.then(async (reg) => {
+        try {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            accounts.forEach(acc => {
+              if (acc && acc.uid && localStorage.getItem('locket_webpush_' + acc.uid) === null) {
+                fetch('/api/push', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'check', uid: acc.uid, endpoint: sub.endpoint })
+                }).then(r => r.json()).then(d => {
+                  if (d.success && d.subscribed) {
+                    localStorage.setItem('locket_webpush_' + acc.uid, 'true');
+                    if (activeNotifyUid === acc.uid && toggleNotifyWeb) {
+                      toggleNotifyWeb.checked = true;
+                    }
+                  } else {
+                    localStorage.setItem('locket_webpush_' + acc.uid, 'false');
+                  }
+                }).catch(() => {});
+              }
+            });
+          }
+        } catch (_) {}
+      });
+    }
   }
 
   window.openNotifyModal = async function (uid) {
@@ -762,28 +798,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       notifyModalUser.textContent = `cho tài khoản ${acc.displayName || acc.email}`;
     }
 
-    // Web Notification state: Kiểm tra theo Service Worker & PushSubscription của thiết bị hiện tại
-    toggleNotifyWeb.checked = false;
-    if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window) {
-      if (Notification.permission === 'granted') {
-        navigator.serviceWorker.ready.then(async (reg) => {
-          try {
-            const sub = await reg.pushManager.getSubscription();
-            if (sub) {
-              const res = await fetch('/api/push', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'check', uid: acc.uid, endpoint: sub.endpoint })
-              });
-              const checkData = await res.json();
-              if (checkData.success && checkData.subscribed) {
-                toggleNotifyWeb.checked = true;
-              }
-            }
-          } catch (_) {}
-        });
-      }
-    }
+    // Web Notification state: Hiển thị ngay lập tức 0ms đồng bộ cùng Tele & Discord
+    toggleNotifyWeb.checked = isWebPushActive(acc.uid);
 
     // Telegram state (luôn hiển thị phần kết nối với mã xác thực 5 phút)
     if (btnCheckTelegramLink) {
@@ -889,13 +905,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           throw new Error(subJson.message || 'Lỗi khi đăng ký nhận thông báo.');
         }
 
+        localStorage.setItem('locket_webpush_' + acc.uid, 'true');
         toggleNotifyWeb.checked = true;
       } catch (err) {
+        localStorage.removeItem('locket_webpush_' + acc.uid);
         toggleNotifyWeb.checked = false;
         alert(err.message || 'Lỗi khi kích hoạt thông báo trên trình duyệt.');
       }
     } else {
       // Hủy đăng ký trên thiết bị này cho UID này
+      localStorage.removeItem('locket_webpush_' + acc.uid);
+      toggleNotifyWeb.checked = false;
       try {
         if ('serviceWorker' in navigator) {
           const reg = await navigator.serviceWorker.ready;
@@ -913,7 +933,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
       } catch (_) {}
-      toggleNotifyWeb.checked = false;
     }
   });
 
@@ -1495,39 +1514,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <div class="detail-row">
               <span class="detail-label">Web Push (Thiết bị này)</span>
-              <span class="detail-val" id="detail-web-push-${escapeHtml(uid)}"><span class="detail-badge badge-neutral">Đang kiểm tra...</span></span>
+              <span class="detail-val">
+                ${isWebPushActive(uid) 
+                  ? '<span class="detail-badge badge-success">Đã bật</span>' 
+                  : '<span class="detail-badge badge-neutral">Đang tắt</span>'}
+              </span>
             </div>
           </div>
         </div>
       </div>
     `;
-
-    // Cập nhật trạng thái Web Push thực tế của thiết bị này trong modal chi tiết
-    if ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && Notification.permission === 'granted') {
-      navigator.serviceWorker.ready.then(async reg => {
-        const sub = await reg.pushManager.getSubscription();
-        const badgeEl = document.getElementById(`detail-web-push-${uid}`);
-        if (!badgeEl) return;
-        if (sub) {
-          const r = await fetch('/api/push', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'check', uid, endpoint: sub.endpoint })
-          }).then(res => res.json()).catch(() => ({}));
-          badgeEl.innerHTML = r.subscribed 
-            ? '<span class="detail-badge badge-success">Đã bật</span>' 
-            : '<span class="detail-badge badge-neutral">Đang tắt</span>';
-        } else {
-          badgeEl.innerHTML = '<span class="detail-badge badge-neutral">Đang tắt</span>';
-        }
-      }).catch(() => {
-        const badgeEl = document.getElementById(`detail-web-push-${uid}`);
-        if (badgeEl) badgeEl.innerHTML = '<span class="detail-badge badge-neutral">Đang tắt</span>';
-      });
-    } else {
-      const badgeEl = document.getElementById(`detail-web-push-${uid}`);
-      if (badgeEl) badgeEl.innerHTML = '<span class="detail-badge badge-neutral">Đang tắt</span>';
-    }
   };
 
   // Hiển thị hiệu ứng skeleton loading mượt mà trên dashboard: Đợi API đồng bộ hoàn tất mới render 1 lần duy nhất

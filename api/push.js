@@ -48,6 +48,20 @@ export default async function pushHandler(req, res) {
   }
 
   try {
+    // 2. Action: KIỂM TRA (Check trạng thái đăng ký của thiết bị) - Tối ưu hóa siêu nhanh, không cần đọc userDoc
+    if (action === 'check') {
+      const targetEndpoint = endpoint || subscription?.endpoint;
+      if (!targetEndpoint) {
+        return res.status(200).json({ success: true, subscribed: false });
+      }
+      const endpointHash = getEndpointHash(targetEndpoint);
+      const doc = await db.collection('users').doc(cleanUid).collection('subscriptions').doc(endpointHash).get();
+      return res.status(200).json({
+        success: true,
+        subscribed: doc.exists
+      });
+    }
+
     const userDoc = await db.collection('users').doc(cleanUid).get();
     if (!userDoc.exists) {
       return res.status(404).json({
@@ -56,7 +70,7 @@ export default async function pushHandler(req, res) {
       });
     }
 
-    // 2. Action: ĐĂNG KÝ (Subscribe) thiết bị này cho đúng UID
+    // 3. Action: ĐĂNG KÝ (Subscribe) thiết bị này cho đúng UID
     if (action === 'subscribe') {
       if (!subscription || !subscription.endpoint || !subscription.keys) {
         return res.status(400).json({ success: false, message: 'Dữ liệu PushSubscription không hợp lệ.' });
@@ -94,7 +108,7 @@ export default async function pushHandler(req, res) {
       });
     }
 
-    // 3. Action: HỦY ĐĂNG KÝ (Unsubscribe)
+    // 4. Action: HỦY ĐĂNG KÝ (Unsubscribe)
     if (action === 'unsubscribe') {
       const targetEndpoint = endpoint || subscription?.endpoint;
       if (targetEndpoint) {
@@ -104,20 +118,6 @@ export default async function pushHandler(req, res) {
       return res.status(200).json({
         success: true,
         message: 'Đã hủy nhận thông báo trên thiết bị này.'
-      });
-    }
-
-    // 4. Action: KIỂM TRA (Check trạng thái đăng ký của thiết bị hiện tại)
-    if (action === 'check') {
-      const targetEndpoint = endpoint || subscription?.endpoint;
-      if (!targetEndpoint) {
-        return res.status(200).json({ success: true, subscribed: false });
-      }
-      const endpointHash = getEndpointHash(targetEndpoint);
-      const doc = await db.collection('users').doc(cleanUid).collection('subscriptions').doc(endpointHash).get();
-      return res.status(200).json({
-        success: true,
-        subscribed: doc.exists
       });
     }
 
