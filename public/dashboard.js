@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Đồng bộ dữ liệu tài khoản hàng loạt qua API /api/accounts duy nhất
-  async function syncAllAccountsFromLocket(silent = false) {
+  async function syncAllAccountsFromLocket(silent = false, skipRender = false) {
     if (accounts.length === 0) return;
 
     if (!silent && btnScanAll) {
@@ -517,7 +517,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (hasChanges) {
           saveAccounts();
-          renderAccounts();
+          if (!skipRender) {
+            renderAccounts();
+          }
         }
       } else {
         throw new Error(resData.message || 'Lỗi lấy dữ liệu batch accounts');
@@ -545,7 +547,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       if (hasChanges) {
         saveAccounts();
-        renderAccounts();
+        if (!skipRender) {
+          renderAccounts();
+        }
       }
     } finally {
       if (!silent && btnScanAll) {
@@ -1362,13 +1366,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   };
 
-  // Hiển thị hiệu ứng skeleton loading mượt mà trên dashboard
+  // Hiển thị hiệu ứng skeleton loading mượt mà trên dashboard: Đợi API đồng bộ hoàn tất mới render 1 lần duy nhất
   if (accounts.length > 0) {
     renderSkeleton(accounts.length);
-    setTimeout(() => {
+    barAccountCount.textContent = `${accounts.length} tài khoản`;
+    try {
+      // Đợi API đồng bộ xong dữ liệu chuỗi mới nhất
+      await syncAllAccountsFromLocket(true, true);
+    } catch (err) {
+      console.warn('[Dashboard Init] Lỗi đồng bộ khởi động:', err.message);
+    } finally {
+      // Render tài khoản 1 lần duy nhất với dữ liệu hoàn chỉnh, không bị giật nháy
       renderAccounts();
-      syncAllAccountsFromLocket(true);
-    }, 380);
+    }
   } else {
     renderAccounts();
   }

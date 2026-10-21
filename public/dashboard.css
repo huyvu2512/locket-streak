@@ -682,6 +682,57 @@ body {
   border-color: rgba(0, 0, 0, 0.14);
 }
 
+/* ==========================================================================
+   Skeleton Loading Animation (Shimmer Effect)
+   ========================================================================== */
+.skeleton-card {
+  pointer-events: none;
+  user-select: none;
+}
+
+.skeleton-box {
+  background: linear-gradient(90deg, #F3F4F6 0%, #E5E7EB 50%, #F3F4F6 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-pill {
+  width: 168px;
+  height: 38px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.skeleton-toggle {
+  width: 44px;
+  height: 26px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.skeleton-btn {
+  height: 34px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
 .acc-card-top {
   display: flex;
   justify-content: space-between;
