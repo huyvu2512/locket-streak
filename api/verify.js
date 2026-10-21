@@ -243,12 +243,17 @@ export default async function verifyHandler(req, res) {
 
       let firstLoginAt = now;
       let sessionSecret = crypto.randomBytes(16).toString('hex');
+      let isExisting = false;
+      let existingData = {};
 
       if (db) {
         const userRef = db.collection('users').doc(userUid);
         const userDoc = await userRef.get();
 
-        const existingData = userDoc.exists ? userDoc.data() : {};
+        if (userDoc.exists) {
+          isExisting = true;
+          existingData = userDoc.data() || {};
+        }
         firstLoginAt = existingData.firstLoginAt || now;
         sessionSecret = existingData.sessionSecret || sessionSecret;
 
@@ -271,8 +276,6 @@ export default async function verifyHandler(req, res) {
           discordId: existingData.discordId ?? null
         }, { merge: true });
       }
-
-      const isExisting = Boolean(userDoc?.exists);
 
       return res.status(200).json({
         success: true,
