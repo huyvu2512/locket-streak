@@ -960,7 +960,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Khi bấm "Mở Telegram Bot": hẹn giờ 7 giây sau tự gọi API check 1 lần duy nhất
+  // Khi bấm "Mở Telegram Bot": hẹn giờ 5 giây sau tự gọi API check 1 lần duy nhất
   btnOpenTelegramBot?.addEventListener('click', () => {
     cancelTeleAutoTimer();
     const acc = accounts.find(a => a.uid === activeNotifyUid);
@@ -973,7 +973,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (currentAcc && !currentAcc.telegramId && modalNotify.style.display !== 'none') {
         await checkTelegramStatus(true);
       }
-    }, 7000);
+    }, 5000);
   });
 
   // Kiểm tra kết nối Telegram (gọi 1 lần sau 10s hoặc khi người dùng chủ động bấm)
