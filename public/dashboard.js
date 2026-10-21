@@ -739,8 +739,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       notifyModalUser.textContent = `cho tài khoản ${acc.displayName || acc.email}`;
     }
 
-    // Web Notification state (đọc từ DB, mặc định false)
-    toggleNotifyWeb.checked = Boolean(acc.webNotify);
+    // Web Notification state: Kiểm tra theo quyền trình duyệt & thiết bị hiện tại (không phụ thuộc DB)
+    const isNotifySupported = ('Notification' in window);
+    const hasNotifyPerm = isNotifySupported && Notification.permission === 'granted';
+    const isWebNotifyEnabledLocally = localStorage.getItem(`locket_web_notify_${acc.uid}`) === 'true';
+    toggleNotifyWeb.checked = Boolean(hasNotifyPerm && isWebNotifyEnabledLocally);
 
     // Telegram state (luôn hiển thị phần kết nối với mã xác thực 5 phút)
     if (btnCheckTelegramLink) {
@@ -787,43 +790,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   btnCloseNotifyDone?.addEventListener('click', closeNotifyModal);
   setupSafeBackdropDismiss(modalNotify, closeNotifyModal);
 
-  // Toggle Web Notifications (Gạt lạc quan ngay lập tức, nếu lỗi thì tự động gạt lại)
+  // Toggle Web Notifications: Quản lý theo từng thiết bị & trình duyệt (lưu cục bộ trên máy, không lưu DB)
   toggleNotifyWeb?.addEventListener('change', async () => {
     const acc = accounts.find(a => a.uid === activeNotifyUid);
     if (!acc) return;
 
     const desiredState = toggleNotifyWeb.checked;
-    const previousState = !desiredState;
 
-    try {
-      if (desiredState) {
-        if (!('Notification' in window)) {
-          throw new Error('Trình duyệt này không hỗ trợ hiển thị thông báo.');
-        }
+    if (desiredState) {
+      if (!('Notification' in window)) {
+        toggleNotifyWeb.checked = false;
+        alert('Trình duyệt trên thiết bị này không hỗ trợ hiển thị thông báo.');
+        return;
+      }
 
+      try {
         const perm = await Notification.requestPermission();
         if (perm !== 'granted') {
-          throw new Error('Bạn chưa cấp quyền thông báo trên trình duyệt.');
+          toggleNotifyWeb.checked = false;
+          alert('Bạn chưa cấp quyền thông báo trên trình duyệt của thiết bị này.');
+          return;
         }
-      }
 
-      const res = await fetch('/api/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: acc.uid, webNotify: desiredState })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Lỗi khi lưu cài đặt thông báo.');
+        // Bật thành công trên thiết bị này
+        localStorage.setItem(`locket_web_notify_${acc.uid}`, 'true');
+      } catch (err) {
+        toggleNotifyWeb.checked = false;
+        alert(err.message || 'Lỗi khi kích hoạt thông báo trên trình duyệt.');
       }
-
-      acc.webNotify = desiredState;
-      saveAccounts();
-      renderAccounts();
-    } catch (err) {
-      // API lỗi hoặc người dùng từ chối quyền: tự động gạt trả về trạng thái cũ
-      toggleNotifyWeb.checked = previousState;
-      alert(err.message || 'Lỗi khi lưu cài đặt thông báo Web.');
+    } else {
+      // Tắt trên thiết bị này
+      localStorage.setItem(`locket_web_notify_${acc.uid}`, 'false');
     }
   });
 
@@ -1433,5 +1430,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } else {
     renderAccounts();
+  }
+
+  // Tự động điều chỉnh vị trí Modal theo bàn phím ảo mobile (ở giữa khi đóng, nâng lên khi mở)
+  if (window.visualViewport) {
+    const syncModalViewport = () => {
+      const activeOverlay = Array.from(document.querySelectorAll('.modal-overlay'))
+        .find(el => el.style.display && el.style.display !== 'none');
+      if (!activeOverlay) return;
+
+      const vv = window.visualViewport;
+      const isKeyboardOpen = vv.height < window.innerHeight * 0.82;
+      const card = activeOverlay.querySelector('.modal-card');
+
+      if (isKeyboardOpen) {
+        activeOverlay.style.height = `${vv.height}px`;
+        activeOverlay.style.top = `${vv.offsetTop}px`;
+        if (card) card.style.transform = 'translateY(0)';
+      } else {
+        activeOverlay.style.height = '';
+        activeOverlay.style.top = '';
+        if (card) card.style.transform = '';
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', syncModalViewport);
+    window.visualViewport.addEventListener('scroll', syncModalViewport);
   }
 });

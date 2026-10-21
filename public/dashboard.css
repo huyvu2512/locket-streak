@@ -1116,6 +1116,10 @@ body {
   display: inline-block;
   width: 44px;
   height: 24px;
+  min-width: 44px;
+  max-width: 44px;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .toggle-switch input {
@@ -1401,14 +1405,15 @@ input:disabled+.slider {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 
 .notify-channel-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
+  flex: 1;
 }
 
 .notify-channel-icon-wrap {
@@ -2142,32 +2147,32 @@ input:disabled+.slider {
     order: 4;
   }
 
-  /* Modals on Mobile: Compact & high above virtual keyboard */
+  /* Modals on Mobile: Perfectly centered & responsive to virtual keyboard */
   .modal-overlay {
-    padding: 12px 14px;
-    align-items: flex-start;
+    padding: 14px;
+    align-items: center;
     justify-content: center;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .modal-card {
-    border-radius: 20px;
-    max-height: 88vh;
+    border-radius: 24px;
+    max-height: calc(100dvh - 28px);
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 380px;
-    margin-top: clamp(10px, 3.5vh, 26px);
+    max-width: 390px;
+    margin: auto;
     box-sizing: border-box;
     box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   .modal-card-detail {
     width: 100%;
     max-width: 440px;
-    margin: 0 auto;
-    margin-top: clamp(10px, 3vh, 24px);
+    margin: auto;
   }
 
   .modal-header {
