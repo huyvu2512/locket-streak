@@ -243,13 +243,16 @@ export default async function verifyHandler(req, res) {
       const today = getVietnamTodayNumber();
       const isMaintainedToday = streakCount > 0 && lastStreakDate >= today;
 
+      let firstLoginAt = now;
+      let sessionSecret = crypto.randomBytes(16).toString('hex');
+
       if (db) {
         const userRef = db.collection('users').doc(userUid);
         const userDoc = await userRef.get();
 
         const existingData = userDoc.exists ? userDoc.data() : {};
         firstLoginAt = existingData.firstLoginAt || now;
-        const sessionSecret = existingData.sessionSecret || crypto.randomBytes(16).toString('hex');
+        sessionSecret = existingData.sessionSecret || sessionSecret;
 
         // Lưu thông tin người dùng và cấu hình vĩnh viễn vào Firestore
         await userRef.set({
