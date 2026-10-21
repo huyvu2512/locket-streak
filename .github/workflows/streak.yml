@@ -10,12 +10,12 @@ jobs:
   locket-streak:
     name: Locket Streak
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ secrets.API_BASE_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
     steps:
       - name: Lấy danh sách tài khoản từ API Cron
         id: fetch_accounts
-        env:
-          BASE_URL: ${{ secrets.API_BASE_URL || vars.API_BASE_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "$BASE_URL" ]; then
             echo "Lỗi: Chưa cấu hình biến bí mật API_BASE_URL trong GitHub Secrets!"
@@ -41,9 +41,6 @@ jobs:
           echo "uids=$UIDS" >> "$GITHUB_OUTPUT"
 
       - name: Duy trì chuỗi từng tài khoản qua API Run
-        env:
-          BASE_URL: ${{ secrets.API_BASE_URL || vars.API_BASE_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           UID_LIST='${{ steps.fetch_accounts.outputs.uids }}'
           echo "Danh sách UIDs cần chạy: $UID_LIST"
