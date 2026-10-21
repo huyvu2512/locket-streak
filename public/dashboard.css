@@ -1132,7 +1132,7 @@ body {
   right: 0;
   bottom: 0;
   background-color: #D1D5DB;
-  transition: 0.2s;
+  transition: background-color 0.32s cubic-bezier(0.25, 1, 0.5, 1);
   border-radius: 9999px;
 }
 
@@ -1144,7 +1144,7 @@ body {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: 0.2s;
+  transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1);
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }

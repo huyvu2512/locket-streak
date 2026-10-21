@@ -386,21 +386,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }).join('');
   }
 
-  // Toggle Auto (BẮT BUỘC ĐỢI API THÀNH CÔNG MỚI CHO GẠT)
+  // Toggle Auto (Gạt lạc quan ngay lập tức, nếu lỗi thì tự động gạt lại)
   window.handleToggleAuto = async function (uid, checkboxEl, event) {
     if (event) {
-      event.preventDefault(); // CẤM tự ý gạt trước!
       event.stopPropagation();
     }
 
     const acc = accounts.find(a => a.uid === uid);
     if (!acc) return;
 
-    // Giữ nguyên trạng thái hiện tại trên UI, cấm tự ý gạt trước
-    checkboxEl.checked = Boolean(acc.autoStreak);
-
-    const desiredState = !acc.autoStreak;
-    checkboxEl.disabled = true;
+    // Trạng thái người dùng vừa gạt sang trên UI
+    const desiredState = checkboxEl.checked;
+    const previousState = !desiredState;
 
     try {
       const res = await fetch('/api/auto', {
@@ -414,15 +411,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw new Error(data.message || 'Lỗi khi cập nhật tự động giữ chuỗi.');
       }
 
-      // API thành công 100% mới cho gạt sang trạng thái mới!
+      // API thành công: giữ nguyên vị trí đã gạt và lưu trạng thái
       acc.autoStreak = desiredState;
-      checkboxEl.checked = desiredState;
       saveAccounts();
     } catch (err) {
+      // API lỗi: Tự động gạt trả về trạng thái cũ
+      checkboxEl.checked = previousState;
       alert(`Không thể cập nhật: ${err.message}`);
-      checkboxEl.checked = Boolean(acc.autoStreak);
-    } finally {
-      checkboxEl.disabled = false;
     }
   };
 
@@ -792,19 +787,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   btnCloseNotifyDone?.addEventListener('click', closeNotifyModal);
   setupSafeBackdropDismiss(modalNotify, closeNotifyModal);
 
-  // Toggle Web Notifications (BẮT BUỘC ĐỢI API THÀNH CÔNG MỚI CHO GẠT)
-  toggleNotifyWeb?.addEventListener('click', async (e) => {
-    e.preventDefault(); // CẤM tự ý gạt trước!
-    e.stopPropagation();
-
+  // Toggle Web Notifications (Gạt lạc quan ngay lập tức, nếu lỗi thì tự động gạt lại)
+  toggleNotifyWeb?.addEventListener('change', async () => {
     const acc = accounts.find(a => a.uid === activeNotifyUid);
     if (!acc) return;
 
-    // Giữ nguyên trạng thái hiện tại trên UI, cấm tự ý gạt trước
-    toggleNotifyWeb.checked = Boolean(acc.webNotify);
-
-    const desiredState = !acc.webNotify;
-    toggleNotifyWeb.disabled = true;
+    const desiredState = toggleNotifyWeb.checked;
+    const previousState = !desiredState;
 
     try {
       if (desiredState) {
@@ -816,89 +805,68 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (perm !== 'granted') {
           throw new Error('Bạn chưa cấp quyền thông báo trên trình duyệt.');
         }
-
-        const res = await fetch('/api/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uid: acc.uid, webNotify: true })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || 'Lỗi khi lưu cài đặt thông báo.');
-        }
-
-        // 100% API thành công mới cho gạt sang BẬT!
-        acc.webNotify = true;
-        toggleNotifyWeb.checked = true;
-        saveAccounts();
-        renderAccounts();
-      } else {
-        const res = await fetch('/api/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uid: acc.uid, webNotify: false })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || 'Lỗi khi lưu cài đặt thông báo.');
-        }
-
-        // 100% API thành công mới cho gạt sang TẮT!
-        acc.webNotify = false;
-        toggleNotifyWeb.checked = false;
-        saveAccounts();
-        renderAccounts();
       }
-    } catch (err) {
-      toggleNotifyWeb.checked = Boolean(acc.webNotify);
-    } finally {
-      toggleNotifyWeb.disabled = false;
-    }
-  });
 
-  // Toggle Telegram: Không cho phép gạt BẬT nếu chưa có ID (ĐỢI API HUỶ NẾU TẮT)
-  toggleNotifyTele?.addEventListener('click', async (e) => {
-    e.preventDefault(); // CẤM tự ý gạt trước!
-    e.stopPropagation();
-
-    const acc = accounts.find(a => a.uid === activeNotifyUid);
-    if (!acc) return;
-
-    // Giữ nguyên trạng thái hiện tại trên UI, cấm tự ý gạt trước
-    toggleNotifyTele.checked = Boolean(acc.telegramId);
-
-    if (!acc.telegramId) {
-      toggleNotifyTele.checked = false;
-      return;
-    }
-
-    // Nếu đã có ID và người dùng bấm để gạt TẮT -> đợi API huỷ
-    cancelTeleAutoTimer();
-    toggleNotifyTele.disabled = true;
-    try {
-      const res = await fetch('/api/telegram', {
+      const res = await fetch('/api/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'unlink', uid: acc.uid })
+        body: JSON.stringify({ uid: acc.uid, webNotify: desiredState })
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Lỗi huỷ liên kết Telegram.');
+        throw new Error(data.message || 'Lỗi khi lưu cài đặt thông báo.');
       }
 
-      // 100% API thành công mới cho gạt sang TẮT!
-      toggleNotifyTele.checked = false;
-      acc.telegramId = null;
+      acc.webNotify = desiredState;
       saveAccounts();
       renderAccounts();
-
-      teleLinkedView.style.display = 'none';
-      teleUnlinkedView.style.display = 'block';
-      refreshTeleCode(acc);
     } catch (err) {
+      // API lỗi hoặc người dùng từ chối quyền: tự động gạt trả về trạng thái cũ
+      toggleNotifyWeb.checked = previousState;
+      alert(err.message || 'Lỗi khi lưu cài đặt thông báo Web.');
+    }
+  });
+
+  // Toggle Telegram: Cho phép gạt lạc quan khi tắt, nếu chưa liên kết thì nhắc mở bot
+  toggleNotifyTele?.addEventListener('change', async () => {
+    const acc = accounts.find(a => a.uid === activeNotifyUid);
+    if (!acc) return;
+
+    // Nếu chưa liên kết mà bấm gạt BẬT -> gạt lại về false và hướng dẫn liên kết
+    if (!acc.telegramId) {
+      toggleNotifyTele.checked = false;
+      alert('Vui lòng bấm nút "Mở Telegram Bot" bên dưới để hoàn tất liên kết tài khoản.');
+      return;
+    }
+
+    const desiredState = toggleNotifyTele.checked;
+    if (!desiredState) {
+      cancelTeleAutoTimer();
+      try {
+        const res = await fetch('/api/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'unlink', uid: acc.uid })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'Lỗi huỷ liên kết Telegram.');
+        }
+
+        acc.telegramId = null;
+        saveAccounts();
+        renderAccounts();
+
+        teleLinkedView.style.display = 'none';
+        teleUnlinkedView.style.display = 'block';
+        refreshTeleCode(acc);
+      } catch (err) {
+        // Tự động gạt trả về trạng thái bật nếu lỗi
+        toggleNotifyTele.checked = true;
+        alert(err.message || 'Lỗi huỷ liên kết Telegram.');
+      }
+    } else {
       toggleNotifyTele.checked = true;
-    } finally {
-      toggleNotifyTele.disabled = false;
     }
   });
 
@@ -999,48 +967,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   btnCheckTelegramLink?.addEventListener('click', () => checkTelegramStatus(false));
 
-  // Toggle Discord: Không cho phép gạt BẬT nếu chưa có Webhook URL (BẮT BUỘC ĐỢI API)
-  toggleNotifyDiscord?.addEventListener('click', async (e) => {
-    e.preventDefault(); // CẤM tự ý gạt trước!
-    e.stopPropagation();
-
+  // Toggle Discord: Cho phép gạt lạc quan khi tắt, nếu chưa liên kết thì nhắc dán webhook
+  toggleNotifyDiscord?.addEventListener('change', async () => {
     const acc = accounts.find(a => a.uid === activeNotifyUid);
     if (!acc) return;
 
-    // Giữ nguyên trạng thái hiện tại trên UI, cấm tự ý gạt trước
-    toggleNotifyDiscord.checked = Boolean(acc.discordId);
-
+    // Nếu chưa có Discord Webhook mà bấm gạt BẬT -> gạt lại về false và nhắc nhập
     if (!acc.discordId) {
       toggleNotifyDiscord.checked = false;
+      discordWebhookUrl?.focus();
+      alert('Vui lòng dán Discord Webhook URL bên dưới và bấm "Kiểm tra & Lưu" để kích hoạt.');
       return;
     }
 
-    // Nếu đã có Webhook và người dùng bấm để gạt TẮT -> đợi API huỷ
-    toggleNotifyDiscord.disabled = true;
-    try {
-      const res = await fetch('/api/discord', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'unlink', uid: acc.uid })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Lỗi khi huỷ liên kết Discord.');
+    const desiredState = toggleNotifyDiscord.checked;
+    if (!desiredState) {
+      try {
+        const res = await fetch('/api/discord', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'unlink', uid: acc.uid })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || 'Lỗi khi huỷ liên kết Discord.');
+        }
+
+        acc.discordId = null;
+        discordWebhookUrl.value = '';
+        saveAccounts();
+        renderAccounts();
+
+        discordLinkedView.style.display = 'none';
+        discordUnlinkedView.style.display = 'block';
+      } catch (err) {
+        // Tự động gạt trả về trạng thái bật nếu lỗi
+        toggleNotifyDiscord.checked = true;
+        alert(err.message || 'Lỗi khi huỷ liên kết Discord.');
       }
-
-      // 100% API thành công mới cho gạt sang TẮT!
-      acc.discordId = null;
-      toggleNotifyDiscord.checked = false;
-      discordWebhookUrl.value = '';
-      saveAccounts();
-      renderAccounts();
-
-      discordLinkedView.style.display = 'none';
-      discordUnlinkedView.style.display = 'block';
-    } catch (err) {
+    } else {
       toggleNotifyDiscord.checked = true;
-    } finally {
-      toggleNotifyDiscord.disabled = false;
     }
   });
 
