@@ -1130,7 +1130,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (mobileMenuBtn) {
-    mobileMenuBtn.addEventListener('click', () => toggleMobileMenu());
+    let lastMenuTap = 0;
+    mobileMenuBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleMobileMenu();
+    });
+    mobileMenuBtn.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastMenuTap < 350) {
+        e.preventDefault();
+      }
+      lastMenuTap = now;
+    }, { passive: false });
   }
   if (mobileMenuBackdrop) {
     mobileMenuBackdrop.addEventListener('click', () => toggleMobileMenu(false));

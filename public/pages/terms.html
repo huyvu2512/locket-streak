@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#FFE091">
   <meta name="description" content="Tự động khôi phục & duy trì chuỗi Locket mỗi ngày">
 
@@ -207,7 +207,18 @@
       }
 
       if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', () => toggleMobileMenu());
+        let lastTap = 0;
+        mobileMenuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          toggleMobileMenu();
+        });
+        mobileMenuBtn.addEventListener('touchend', (e) => {
+          const now = Date.now();
+          if (now - lastTap < 350) {
+            e.preventDefault();
+          }
+          lastTap = now;
+        }, { passive: false });
       }
       if (mobileMenuBackdrop) {
         mobileMenuBackdrop.addEventListener('click', () => toggleMobileMenu(false));
