@@ -787,14 +787,16 @@ code {
 
 .footer-nav-group {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 52px;
 }
 
 .footer-nav-row {
   display: flex;
-  align-items: center;
-  gap: 28px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .footer-nav-link {
@@ -1174,11 +1176,14 @@ code {
   }
 
   .footer-nav-group {
+    flex-direction: column;
     gap: 12px;
   }
 
   .footer-nav-row {
+    flex-direction: row;
     flex-wrap: wrap;
+    align-items: center;
     gap: 16px;
   }
 
