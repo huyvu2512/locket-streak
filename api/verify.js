@@ -274,9 +274,11 @@ export default async function verifyHandler(req, res) {
         }, { merge: true });
       }
 
+      const isExisting = Boolean(userDoc?.exists);
+
       return res.status(200).json({
         success: true,
-        message: 'Xác thực tài khoản thành công!',
+        message: isExisting ? 'Cập nhật thông tin tài khoản thành công!' : 'Thêm tài khoản Locket thành công!',
         data: {
           uid: userUid,
           email: finalEmail,
@@ -288,7 +290,12 @@ export default async function verifyHandler(req, res) {
           isMaintainedToday,
           sessionSecret,
           firstLoginAt,
-          lastLoginAt: now
+          lastLoginAt: now,
+          autoStreak: existingData.autoStreak ?? false,
+          telegramId: existingData.telegramId ?? null,
+          discordId: existingData.discordId ?? null,
+          webNotify: existingData.webNotify ?? false,
+          isExisting
         }
       });
 

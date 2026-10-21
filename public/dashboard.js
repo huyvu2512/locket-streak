@@ -157,31 +157,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       const info = data.data;
-      const existingIdx = accounts.findIndex(a => a.uid === info.uid || a.email === info.email);
+      // Tìm tài khoản theo UID duy nhất (UID là bất biến, kể cả khi đổi email, đổi mật khẩu hay đổi tên)
+      const existingIdx = accounts.findIndex(a => a.uid === info.uid || (a.email && info.email && a.email.toLowerCase() === info.email.toLowerCase()));
 
-      const newAcc = {
+      const prev = existingIdx >= 0 ? accounts[existingIdx] : {};
+      const updatedAcc = {
         uid: info.uid,
-        email: info.email,
-        displayName: info.email.split('@')[0],
-        streakCount: accounts[existingIdx]?.streakCount || 0,
-        previousStreak: accounts[existingIdx]?.previousStreak || 0,
-        lastStreakDate: accounts[existingIdx]?.lastStreakDate || 0,
-        autoStreak: false,
-        sessionSecret: info.sessionSecret || accounts[existingIdx]?.sessionSecret || null,
-        firstLoginAt: info.firstLoginAt,
+        email: info.email || prev.email,
+        displayName: info.displayName || prev.displayName || (info.email ? info.email.split('@')[0] : 'Người dùng'),
+        username: info.username || prev.username || null,
+        avatarUrl: info.avatarUrl || prev.avatarUrl || null,
+        streakCount: info.streakCount !== undefined ? info.streakCount : (prev.streakCount || 0),
+        previousStreak: prev.previousStreak || 0,
+        lastStreakDate: info.lastStreakDate !== undefined ? info.lastStreakDate : (prev.lastStreakDate || 0),
+        autoStreak: info.autoStreak !== undefined ? info.autoStreak : (prev.autoStreak ?? false),
+        telegramId: info.telegramId !== undefined ? info.telegramId : (prev.telegramId || null),
+        discordId: info.discordId !== undefined ? info.discordId : (prev.discordId || null),
+        webNotify: info.webNotify !== undefined ? info.webNotify : (prev.webNotify ?? false),
+        sessionSecret: info.sessionSecret || prev.sessionSecret || null,
+        firstLoginAt: info.firstLoginAt || prev.firstLoginAt || info.lastLoginAt,
         lastLoginAt: info.lastLoginAt
       };
 
       if (existingIdx >= 0) {
-        accounts[existingIdx] = { ...accounts[existingIdx], ...newAcc };
+        // Cập nhật lại thông tin tài khoản đã có (đổi mk, đổi email, đổi tên...)
+        // TUYỆT ĐỐI KHÔNG TẠO MỚI, KHÔNG BỊ TRÙNG LẶP THẺ!
+        accounts[existingIdx] = updatedAcc;
+        showModalMsg('Đã cập nhật thông tin tài khoản thành công!', 'success');
       } else {
-        accounts.push(newAcc);
+        accounts.push(updatedAcc);
+        showModalMsg('Thêm tài khoản thành công!', 'success');
       }
 
       saveAccounts();
       renderAccounts();
 
-      showModalMsg('Đăng nhập thành công!', 'success');
       setTimeout(() => {
         closeModal();
         syncAllAccountsFromLocket(true);
@@ -196,6 +206,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Render Accounts
   function saveAccounts() {
+    // Đảm bảo không bao giờ có 2 tài khoản trùng UID trong danh sách
+    const uniqueMap = new Map();
+    for (const acc of accounts) {
+      if (acc && acc.uid) {
+        if (uniqueMap.has(acc.uid)) {
+          uniqueMap.set(acc.uid, { ...uniqueMap.get(acc.uid), ...acc });
+        } else {
+          uniqueMap.set(acc.uid, acc);
+        }
+      }
+    }
+    accounts = Array.from(uniqueMap.values());
     localStorage.setItem('locket_accounts', JSON.stringify(accounts));
   }
 
