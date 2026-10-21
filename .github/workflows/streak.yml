@@ -6,7 +6,8 @@ on:
     types: [trigger-streak]
 
 jobs:
-  keep-streak:
+  locket-streak:
+    name: Locket Streak
     runs-on: ubuntu-latest
     steps:
       - name: Lấy danh sách tài khoản từ API Cron
@@ -20,11 +21,11 @@ jobs:
             exit 1
           fi
           URL="${BASE_URL%/}/api/cron"
-          echo "Đang kết nối lấy danh sách tài khoản..."
+          echo "Đang kết nối lấy danh sách tài khoản từ: $URL"
           if [ -n "$CRON_SECRET" ]; then
-            RESPONSE=$(curl -s -H "Authorization: Bearer $CRON_SECRET" "$URL")
+            RESPONSE=$(curl -s --connect-timeout 10 --max-time 30 -H "Authorization: Bearer $CRON_SECRET" "$URL")
           else
-            RESPONSE=$(curl -s "$URL")
+            RESPONSE=$(curl -s --connect-timeout 10 --max-time 30 "$URL")
           fi
           echo "Kết quả API: $RESPONSE"
           UIDS=$(echo "$RESPONSE" | jq -c '.uids // []')
@@ -41,17 +42,17 @@ jobs:
             if [ -n "$uid" ] && [ "$uid" != "null" ]; then
               echo ">>> Đang duy trì chuỗi cho UID: $uid"
               if [ -n "$CRON_SECRET" ]; then
-                curl -s -X POST "${BASE_URL%/}/api/run" \
+                curl -s --connect-timeout 10 --max-time 30 -X POST "${BASE_URL%/}/api/run" \
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $CRON_SECRET" \
                   -d "{\"uid\":\"$uid\"}"
               else
-                curl -s -X POST "${BASE_URL%/}/api/run" \
+                curl -s --connect-timeout 10 --max-time 30 -X POST "${BASE_URL%/}/api/run" \
                   -H "Content-Type: application/json" \
                   -d "{\"uid\":\"$uid\"}"
               fi
               echo ""
-              sleep 3
+              sleep 2
             fi
           done
           echo "Đã hoàn tất toàn bộ danh sách tài khoản."
