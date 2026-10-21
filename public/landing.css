@@ -910,23 +910,26 @@ code {
     padding: 0 4px;
   }
 
-  /* Hero Actions: Stacked cleanly, no text wrapping */
+  /* Hero Actions: 1 single row on mobile */
   .hero-actions {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    max-width: 320px;
+    max-width: 360px;
     gap: 10px;
     margin-bottom: 34px;
   }
 
   .hero-actions .btn-locket-primary,
   .hero-actions .btn-locket-secondary {
-    width: 100%;
-    height: 48px;
-    padding: 0 20px;
-    font-size: 15.5px;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    height: 46px;
+    padding: 0 10px;
+    font-size: 14px;
     font-weight: 800;
     border-radius: 9999px;
     box-sizing: border-box;
@@ -935,6 +938,18 @@ code {
     align-items: center;
     justify-content: center;
     text-align: center;
+  }
+
+  @media (max-width: 360px) {
+    .hero-actions {
+      gap: 6px;
+    }
+    .hero-actions .btn-locket-primary,
+    .hero-actions .btn-locket-secondary {
+      font-size: 13px;
+      padding: 0 6px;
+      height: 44px;
+    }
   }
 
   /* Hero Stats: Balanced horizontal 3-column pill bar */
