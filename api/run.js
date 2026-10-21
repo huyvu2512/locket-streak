@@ -2,8 +2,19 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import webpush from 'web-push';
 import { db } from './db.js';
 import { getValidToken, getVietnamTodayNumber, getVietnamTime, formatVietnamDateTime, getRandomLocketHeaders, getRandomDelay, LOCKET_API_URL, LOCKET_STORAGE_URL, LOCKET_STORAGE_BUCKET } from './verify.js';
+
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@streak.huyvu2512.io.vn',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  } catch (_) {}
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -260,10 +271,57 @@ async function sendNotification({ userData, actionType, streakCount }) {
       console.warn('[Run] Lỗi gửi Discord:', e.message);
     }
   }
+
+  // 3. Web Push Notification (Chỉ gửi đến các thiết bị đã đăng ký cho đúng UID này)
+  if (userData.uid && db && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    try {
+      const subsSnapshot = await db.collection('users').doc(userData.uid).collection('subscriptions').get();
+      if (!subsSnapshot.empty) {
+        let pushTitle = '🔥 Duy trì chuỗi thành công!';
+        let pushBody = `${accountName} • Chuỗi ${streakCount} ngày • ${currentTime}`;
+
+        if (isRestore) {
+          pushTitle = '⚡ Khôi phục chuỗi thành công!';
+          pushBody = `${accountName} • Chuỗi ${streakCount} ngày (Đã cứu chuỗi) • ${currentTime}`;
+        } else if (actionType === 'already_updated') {
+          pushTitle = '⚡ Đã ghi nhận chuỗi Locket!';
+          pushBody = `${accountName} • Chuỗi ${streakCount} ngày (Đã tự duy trì) • ${currentTime}`;
+        }
+
+        const payload = JSON.stringify({
+          title: pushTitle,
+          body: pushBody,
+          icon: '/assets/icon-192.png',
+          badge: '/assets/icon-192.png',
+          data: { url: '/dashboard', uid: userData.uid }
+        });
+
+        const sendPromises = subsSnapshot.docs.map(async (doc) => {
+          const subData = doc.data();
+          if (!subData.endpoint || !subData.keys) return;
+          try {
+            await webpush.sendNotification({
+              endpoint: subData.endpoint,
+              keys: subData.keys
+            }, payload);
+          } catch (err) {
+            // Nếu thiết bị đã huỷ quyền hoặc không tồn tại (410 / 404), tự động dọn dẹp subscription
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await doc.ref.delete().catch(() => null);
+            }
+          }
+        });
+
+        await Promise.allSettled(sendPromises);
+      }
+    } catch (e) {
+      console.warn('[Run] Lỗi gửi Web Push:', e.message);
+    }
+  }
 }
 
 /**
- * Gửi thông báo lỗi đến Telegram & Discord khi quá trình chạy chuỗi thất bại
+ * Gửi thông báo lỗi đến Telegram, Discord & Web Push khi quá trình chạy chuỗi thất bại
  */
 async function sendErrorNotification({ userData, errorMsg }) {
   if (!userData) return;
@@ -308,6 +366,41 @@ async function sendErrorNotification({ userData, errorMsg }) {
       });
     } catch (e) {
       console.warn('[Run] Lỗi gửi thông báo lỗi Discord:', e.message);
+    }
+  }
+
+  // 3. Web Push Error
+  if (userData.uid && db && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    try {
+      const subsSnapshot = await db.collection('users').doc(userData.uid).collection('subscriptions').get();
+      if (!subsSnapshot.empty) {
+        const payload = JSON.stringify({
+          title: '🚨 Chạy chuỗi thất bại!',
+          body: `${accountName}: ${cleanError}`,
+          icon: '/assets/icon-192.png',
+          badge: '/assets/icon-192.png',
+          data: { url: '/dashboard', uid: userData.uid }
+        });
+
+        const sendPromises = subsSnapshot.docs.map(async (doc) => {
+          const subData = doc.data();
+          if (!subData.endpoint || !subData.keys) return;
+          try {
+            await webpush.sendNotification({
+              endpoint: subData.endpoint,
+              keys: subData.keys
+            }, payload);
+          } catch (err) {
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await doc.ref.delete().catch(() => null);
+            }
+          }
+        });
+
+        await Promise.allSettled(sendPromises);
+      }
+    } catch (e) {
+      console.warn('[Run] Lỗi gửi Web Push lỗi:', e.message);
     }
   }
 }

@@ -13,6 +13,7 @@ import runHandler from './api/run.js';
 import cronHandler from './api/cron.js';
 import logoutHandler from './api/logout.js';
 import accountsHandler from './api/accounts.js';
+import pushHandler from './api/push.js';
 
 dotenv.config();
 
@@ -103,6 +104,11 @@ app.get('/preview.png', (req, res) => res.sendFile(path.join(__dirname, 'public'
 app.get('/icons/streak.png', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'streak.png')));
 app.get('/sitemap.xml', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sitemap.xml')));
 app.get('/robots.txt', (req, res) => res.sendFile(path.join(__dirname, 'public', 'robots.txt')));
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.sendFile(path.join(__dirname, 'public', 'sw.js'));
+});
 
 // === Các API Handlers trong /api ===
 app.all('/api/verify', verifyHandler);
@@ -115,6 +121,7 @@ app.all('/api/run', runHandler);
 app.all('/api/cron', cronHandler);
 app.all('/api/logout', logoutHandler);
 app.all('/api/accounts', accountsHandler);
+app.all('/api/push', pushHandler);
 
 // Khởi chạy server
 app.listen(PORT, () => {

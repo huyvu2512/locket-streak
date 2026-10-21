@@ -99,8 +99,7 @@ export default async function streakHandler(req, res) {
           autoStreak: userData.autoStreak ?? false,
           telegramId: userData.telegramId ?? null,
           discordId: userData.discordId ?? null,
-          discordWebhook: userData.discordWebhook ?? null,
-          webNotify: userData.webNotify ?? false
+          discordWebhook: userData.discordWebhook ?? null
         },
         stats: {
           lastStreakRunAt: userData.lastStreakRunAt || userData.lastRunAt || null,

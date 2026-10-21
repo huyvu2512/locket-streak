@@ -102,7 +102,6 @@ export default async function accountsHandler(req, res) {
           autoStreak: Boolean(u.autoStreak),
           telegramId: u.telegramId || null,
           discordId: u.discordId || null,
-          webNotify: Boolean(u.webNotify),
           lastStreakRunAt: u.lastStreakRunAt || null,
           lastStreakStatus: u.lastStreakStatus || null,
           lastStreakNotifiedDate: Number(u.lastStreakNotifiedDate) || 0
@@ -181,7 +180,6 @@ export default async function accountsHandler(req, res) {
             autoStreak: Boolean(userData.autoStreak),
             telegramId: userData.telegramId || null,
             discordId: userData.discordId || null,
-            webNotify: Boolean(userData.webNotify),
             lastStreakRunAt: userData.lastStreakRunAt || null,
             lastStreakStatus: userData.lastStreakStatus || null,
             lastStreakNotifiedDate: Number(userData.lastStreakNotifiedDate) || 0
@@ -200,7 +198,6 @@ export default async function accountsHandler(req, res) {
             autoStreak: Boolean(userData.autoStreak),
             telegramId: userData.telegramId || null,
             discordId: userData.discordId || null,
-            webNotify: Boolean(userData.webNotify),
             lastStreakRunAt: userData.lastStreakRunAt || null,
             lastStreakStatus: userData.lastStreakStatus || null,
             lastStreakNotifiedDate: Number(userData.lastStreakNotifiedDate) || 0,

@@ -14,9 +14,17 @@
     { "source": "/favicon.ico", "destination": "/assets/favicon.ico" },
     { "source": "/apple-touch-icon.png", "destination": "/assets/apple-touch-icon.png" },
     { "source": "/apple-touch-icon-precomposed.png", "destination": "/assets/apple-touch-icon.png" },
-    { "source": "/logo.png", "destination": "/assets/logo.png" }
+    { "source": "/logo.png", "destination": "/assets/logo.png" },
+    { "source": "/sw.js", "destination": "/sw.js" }
   ],
   "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

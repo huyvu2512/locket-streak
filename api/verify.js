@@ -152,17 +152,15 @@ export default async function verifyHandler(req, res) {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   }
 
-  const { email, password, uid, autoStreak, webNotify, webPushSubscription, action } = req.body || {};
+  const { email, password, uid, autoStreak, action } = req.body || {};
 
   // =========================================================================
   // TRƯỜNG HỢP: Cập nhật cài đặt người dùng (Gộp từ settings API)
   // =========================================================================
-  if (uid && (action === 'settings' || typeof autoStreak === 'boolean' || typeof webNotify === 'boolean' || webPushSubscription !== undefined)) {
+  if (uid && (action === 'settings' || typeof autoStreak === 'boolean')) {
     try {
       const updateData = {};
       if (typeof autoStreak === 'boolean') updateData.autoStreak = autoStreak;
-      if (typeof webNotify === 'boolean') updateData.webNotify = webNotify;
-      if (webPushSubscription !== undefined) updateData.webPushSubscription = webPushSubscription;
 
       if (Object.keys(updateData).length === 0) {
         return res.status(400).json({ success: false, message: 'Không có dữ liệu cài đặt hợp lệ để cập nhật.' });
@@ -294,7 +292,6 @@ export default async function verifyHandler(req, res) {
           autoStreak: existingData.autoStreak ?? false,
           telegramId: existingData.telegramId ?? null,
           discordId: existingData.discordId ?? null,
-          webNotify: existingData.webNotify ?? false,
           isExisting
         }
       });
