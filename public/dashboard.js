@@ -1166,6 +1166,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Chặn triệt để cử chỉ Double-Tap để Zoom và Pinch-to-Zoom trên điện thoại
+  let lastTouchEndTime = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEndTime <= 300) {
+      if (!['INPUT', 'TEXTAREA'].includes(e.target?.tagName)) {
+        e.preventDefault();
+      }
+    }
+    lastTouchEndTime = now;
+  }, { passive: false });
+
+  document.addEventListener('gesturestart', (e) => {
+    e.preventDefault();
+  });
+
   // ==========================================================================
   // Modal: Chi Tiết Tài Khoản & Dữ Liệu DB
   // ==========================================================================

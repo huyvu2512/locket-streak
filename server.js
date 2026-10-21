@@ -97,6 +97,7 @@ app.get('/shortcuts', (req, res) => {
 // Root icon & crawler fallbacks (seamless resolution for external crawlers/devices)
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'favicon.ico')));
 app.get('/apple-touch-icon.png', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'apple-touch-icon.png')));
+app.get('/apple-touch-icon-precomposed.png', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'apple-touch-icon.png')));
 app.get('/logo.png', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'logo.png')));
 app.get('/preview.png', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'preview.png')));
 app.get('/icons/streak.png', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'streak.png')));

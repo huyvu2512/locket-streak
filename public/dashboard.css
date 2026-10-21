@@ -49,6 +49,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  touch-action: manipulation;
 }
 
 html,
@@ -2207,7 +2208,7 @@ input:disabled+.slider {
   .field-input {
     padding: 8px 12px;
     height: 38px;
-    font-size: 14px;
+    font-size: 16px !important; /* Bắt buộc 16px để iOS Safari không tự động phóng to web khi bấm nhập */
     border-radius: 11px;
   }
 

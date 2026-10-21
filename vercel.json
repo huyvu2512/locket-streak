@@ -13,6 +13,7 @@
     { "source": "/icons/streak.png", "destination": "/assets/streak.png" },
     { "source": "/favicon.ico", "destination": "/assets/favicon.ico" },
     { "source": "/apple-touch-icon.png", "destination": "/assets/apple-touch-icon.png" },
+    { "source": "/apple-touch-icon-precomposed.png", "destination": "/assets/apple-touch-icon.png" },
     { "source": "/logo.png", "destination": "/assets/logo.png" }
   ],
   "headers": [
