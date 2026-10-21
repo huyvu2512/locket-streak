@@ -1113,11 +1113,14 @@ body {
 /* Toggle Switch */
 .toggle-switch {
   position: relative;
-  display: inline-block;
+  display: block;
   width: 44px;
-  height: 24px;
   min-width: 44px;
   max-width: 44px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
+  flex: 0 0 44px;
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -1126,18 +1129,19 @@ body {
   opacity: 0;
   width: 0;
   height: 0;
+  position: absolute;
 }
 
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
+  width: 44px;
+  height: 24px;
   background-color: #D1D5DB;
   transition: background-color 0.32s cubic-bezier(0.25, 1, 0.5, 1);
   border-radius: 9999px;
+  box-sizing: border-box;
 }
 
 .slider:before {
@@ -1414,6 +1418,13 @@ input:disabled+.slider {
   gap: 12px;
   min-width: 0;
   flex: 1;
+  overflow: hidden;
+}
+
+.notify-channel-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .notify-channel-icon-wrap {
@@ -1447,6 +1458,9 @@ input:disabled+.slider {
   font-weight: 800;
   color: var(--color-black);
   line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notify-channel-desc {
@@ -1456,6 +1470,9 @@ input:disabled+.slider {
   color: var(--color-muted);
   margin-top: 2px;
   line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notify-channel-substatus {
