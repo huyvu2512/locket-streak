@@ -207,16 +207,6 @@ VAPID_SUBJECT=mailto:admin@streak.huyvu2512.io.vn
 
 ---
 
-## Triển khai lên Vercel
-
-1. Đẩy mã nguồn dự án lên kho lưu trữ GitHub cá nhân.
-2. Đăng nhập vào trang quản trị [Vercel Dashboard](https://vercel.com/) và chọn **Add New Project**.
-3. Chọn repository `locket-streak`.
-4. Trong phần **Environment Variables**, sao chép toàn bộ các biến trong file `.env` của bạn vào cấu hình Vercel.
-5. Nhấn **Deploy**. Vercel sẽ tự động tối ưu hóa định tuyến API và phân phối ứng dụng qua mạng toàn cầu.
-
----
-
 ## Tài liệu & Chính sách
 
 | Tài liệu | Nội dung |
