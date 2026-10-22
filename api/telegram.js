@@ -139,6 +139,7 @@ export default async function telegramHandler(req, res) {
         return res.status(200).json({
           success: true,
           linked: true,
+          botUsername,
           telegramId: strChatId,
           senderName,
           message: 'Liên kết Telegram thành công!'
@@ -148,6 +149,7 @@ export default async function telegramHandler(req, res) {
       return res.status(200).json({
         success: true,
         linked: false,
+        botUsername,
         message: 'Chưa tìm thấy tin nhắn /start hợp lệ (hoặc mã đã quá hạn 5 phút). Vui lòng bấm "Mở Telegram Bot" và nhấn Bắt đầu lại.'
       });
     }

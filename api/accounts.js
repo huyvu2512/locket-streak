@@ -15,6 +15,7 @@ export default async function accountsHandler(req, res) {
   const payload = req.method === 'POST' ? req.body : req.query;
   const uids = payload?.uids;
   const syncLive = String(payload?.syncLive) === 'true';
+  const botUsername = (process.env.TELEGRAM_BOT_USERNAME || 'LocketStreakBot').replace('@', '').trim();
 
   if (!db) {
     return res.status(503).json({
@@ -112,6 +113,7 @@ export default async function accountsHandler(req, res) {
         success: true,
         count: data.length,
         syncedLive: false,
+        botUsername,
         data
       });
     }
@@ -217,6 +219,7 @@ export default async function accountsHandler(req, res) {
       success: true,
       count: results.length,
       syncedLive: true,
+      botUsername,
       data: results
     });
 

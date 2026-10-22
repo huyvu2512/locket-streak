@@ -566,6 +566,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const resData = await res.json();
       if (res.ok && resData.success && Array.isArray(resData.data)) {
+        if (resData.botUsername) {
+          telegramBotUsername = resData.botUsername;
+          telegramBotUsernameLoaded = true;
+        }
         let hasChanges = false;
         resData.data.forEach(freshAcc => {
           const idx = accounts.findIndex(a => a.uid === freshAcc.uid);
@@ -780,11 +784,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (teleCheckLabel) teleCheckLabel.textContent = 'Kiểm tra kết nối';
 
     currentTeleCode = null;
-    if (telegramBotUsernameLoaded) {
-      refreshTeleCode(acc);
-    } else {
-      ensureTelegramBotInfo().then(() => refreshTeleCode(acc));
-    }
+    refreshTeleCode(acc);
     if (acc.telegramId) {
       toggleNotifyTele.checked = true;
       teleLinkedView.style.display = 'block';
@@ -949,11 +949,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Khi bấm "Mở Telegram Bot": hẹn giờ 5 giây sau tự gọi API check 1 lần duy nhất
-  btnOpenTelegramBot?.addEventListener('click', () => {
+  // Khi bấm "Mở Telegram Bot": đảm bảo có botUsername rồi mới mở, và hẹn giờ 5 giây sau tự check 1 lần
+  btnOpenTelegramBot?.addEventListener('click', async (e) => {
     cancelTeleAutoTimer();
     const acc = accounts.find(a => a.uid === activeNotifyUid);
     if (!acc) return;
+
+    if (!telegramBotUsernameLoaded) {
+      e.preventDefault();
+      await ensureTelegramBotInfo();
+      refreshTeleCode(acc);
+      window.open(btnOpenTelegramBot.href, '_blank');
+    }
 
     teleAutoCheckTimer = setTimeout(async () => {
       teleAutoCheckTimer = null;
@@ -965,7 +972,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 5000);
   });
 
-  // Kiểm tra kết nối Telegram (gọi 1 lần sau 10s hoặc khi người dùng chủ động bấm)
+  // Kiểm tra kết nối Telegram (gọi 1 lần sau 5s hoặc khi người dùng chủ động bấm)
   async function checkTelegramStatus(isAuto = false) {
     cancelTeleAutoTimer(); // Huỷ timer chờ nếu người dùng hoặc hệ thống đã check
 
@@ -985,6 +992,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         body: JSON.stringify({ action: 'check', uid: acc.uid, teleCode: currentTeleCode })
       });
       const data = await res.json();
+
+      if (data.botUsername) {
+        telegramBotUsername = data.botUsername;
+        telegramBotUsernameLoaded = true;
+      }
 
       if (data.success && data.linked) {
         // 2. Trạng thái Thành công: Hiện icon V (checkmark)
