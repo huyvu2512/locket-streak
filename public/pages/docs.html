@@ -96,6 +96,27 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+    .badge-status {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-left: 6px;
+    }
+    .status-200 { background: #E8F5E9; color: #2E7D32; }
+    .status-429 { background: #FFF3E0; color: #E65100; }
+    .status-err { background: #FFEBEE; color: #C62828; }
+    .doc-note-box {
+      background: rgba(255, 204, 0, 0.12);
+      border-left: 4px solid #FFA500;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin: 12px 0 16px 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--color-ink);
+    }
   </style>
 </head>
 
@@ -175,14 +196,21 @@
             <span class="http-method method-post">POST</span>
             <span class="endpoint-badge">/api/run</span>
           </div>
-          <p class="card-desc" style="margin-bottom: 14px;">Kích hoạt duy trì hoặc khôi phục bù chuỗi cho tài khoản của bạn bằng UID cá nhân.</p>
+          <p class="card-desc" style="margin-bottom: 14px;">Kích hoạt duy trì hoặc khôi phục bù chuỗi cho tài khoản Locket bằng UID cá nhân. Hoàn toàn không yêu cầu API Key hay Token bí mật, an toàn tuyệt đối khi sử dụng cho Siri Shortcuts hoặc Webhook tự động.</p>
+
+          <div class="doc-note-box">
+            <strong>Mẹo lấy mã UID:</strong> Truy cập vào <a href="/dashboard" style="color: #D97706; font-weight: 600;">Bảng Quản Lý</a>, bấm nút <strong>Chi tiết</strong> trên thẻ tài khoản của bạn để sao chép mã UID.
+          </div>
+
+          <div class="param-label">Headers</div>
+          <pre class="code-box"><code>Content-Type: application/json</code></pre>
 
           <div class="param-label">Request Body (JSON)</div>
           <pre class="code-box"><code>{
   "uid": "YOUR_LOCKET_UID"
 }</code></pre>
 
-          <div class="param-label">Response 200 (Thành công)</div>
+          <div class="param-label">Response 200 (Duy trì thành công) <span class="badge-status status-200">200 OK</span></div>
           <pre class="code-box"><code>{
   "success": true,
   "alreadyUpdated": false,
@@ -192,11 +220,34 @@
   "message": "Duy trì chuỗi hôm nay thành công! Chuỗi hiện tại: 206 ngày."
 }</code></pre>
 
-          <div class="param-label">Response 400 / 500 (Lỗi)</div>
+          <div class="param-label">Response 200 (Hôm nay đã được giữ chuỗi trước đó) <span class="badge-status status-200">200 OK</span></div>
+          <pre class="code-box"><code>{
+  "success": true,
+  "alreadyUpdated": true,
+  "restoredDates": [],
+  "updatedToday": false,
+  "streakCount": 206,
+  "message": "Chuỗi hôm nay (206 ngày) đã được duy trì trước đó rồi, không cần chạy lại."
+}</code></pre>
+
+          <div class="param-label">Response 429 (Giới hạn tần suất gọi - Cooldown 30s) <span class="badge-status status-429">429 Too Many Requests</span></div>
           <pre class="code-box"><code>{
   "success": false,
-  "message": "Thiếu UID người dùng hoặc phiên đăng nhập đã hết hạn."
+  "cooldown": true,
+  "remainingSeconds": 24,
+  "message": "Thao tác quá nhanh! Vui lòng đợi 24 giây nữa trước khi tiếp tục."
 }</code></pre>
+
+          <div class="param-label">Response 400 / 401 / 404 (Lỗi yêu cầu) <span class="badge-status status-err">Error</span></div>
+          <pre class="code-box"><code>{
+  "success": false,
+  "message": "Mã UID không hợp lệ hoặc tài khoản chưa được thêm vào hệ thống."
+}</code></pre>
+
+          <div class="param-label">Ví dụ cURL</div>
+          <pre class="code-box"><code>curl -X POST https://YOUR_DOMAIN/api/run \
+  -H "Content-Type: application/json" \
+  -d '{"uid": "YOUR_LOCKET_UID"}'</code></pre>
         </div>
 
       </div>
