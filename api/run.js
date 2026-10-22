@@ -215,21 +215,26 @@ async function postMoment({ idToken, uid, isRestore = false, targetYMD, logoInfo
 /**
  * Gửi thông báo đến Telegram & Discord cho từng lần khôi phục hoặc duy trì chuỗi
  */
-async function sendNotification({ userData, actionType, streakCount }) {
+async function sendNotification({ userData, actionType, streakCount, dateYMD = 0 }) {
   const isRestore = actionType === 'restore';
   const accountName = userData.displayName || userData.username || userData.email || 'Tài khoản Locket';
   const currentTime = formatVietnamDateTime();
+
+  // Định dạng ngày khôi phục / duy trì cụ thể dạng DD/MM/YYYY
+  const targetDateStr = (dateYMD && String(dateYMD).length === 8)
+    ? `${String(dateYMD).slice(6, 8)}/${String(dateYMD).slice(4, 6)}/${String(dateYMD).slice(0, 4)}`
+    : currentTime;
 
   // 1. Telegram Notification
   if (userData.telegramId && process.env.TELEGRAM_BOT_TOKEN) {
     try {
       let msg = '';
       if (isRestore) {
-        msg = `⚡ Khôi phục chuỗi thành công!\n\nTài khoản: ${accountName}\nKhôi phục ngày: ${currentTime}\nChuỗi: ${streakCount} ngày`;
+        msg = `⚡ Khôi phục chuỗi thành công!\n\nTài khoản: ${accountName}\nNgày khôi phục: ${targetDateStr}\nChuỗi: ${streakCount} ngày`;
       } else if (actionType === 'already_updated') {
-        msg = `⚡ Đã ghi nhận chuỗi Locket!\n\nTài khoản: ${accountName}\nNgày: ${currentTime}\nChuỗi: ${streakCount} ngày\nTrạng thái: Đã tự duy trì trong ứng dụng.`;
+        msg = `⚡ Đã ghi nhận chuỗi Locket!\n\nTài khoản: ${accountName}\nNgày: ${targetDateStr}\nChuỗi: ${streakCount} ngày\nTrạng thái: Đã tự duy trì trong ứng dụng.`;
       } else {
-        msg = `🔥 Duy trì chuỗi thành công!\n\nTài khoản: ${accountName}\nNgày: ${currentTime}\nChuỗi: ${streakCount} ngày`;
+        msg = `🔥 Duy trì chuỗi thành công!\n\nTài khoản: ${accountName}\nNgày: ${targetDateStr}\nChuỗi: ${streakCount} ngày`;
       }
 
       await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -249,16 +254,16 @@ async function sendNotification({ userData, actionType, streakCount }) {
   if (userData.discordId) {
     try {
       let title = 'Duy trì chuỗi thành công!';
-      let description = `Tài khoản: ${accountName}\nNgày: ${currentTime}\nChuỗi: ${streakCount} ngày`;
+      let description = `Tài khoản: ${accountName}\nNgày: ${targetDateStr}\nChuỗi: ${streakCount} ngày`;
       let color = 16753920; // Cam khi duy trì
 
       if (isRestore) {
-        title = 'Khôi phục chuỗi thành công!';
-        description = `Tài khoản: ${accountName}\nKhôi phục ngày: ${currentTime}\nChuỗi: ${streakCount} ngày`;
+        title = '⚡ Khôi phục chuỗi thành công!';
+        description = `Tài khoản: ${accountName}\nNgày khôi phục: ${targetDateStr}\nChuỗi: ${streakCount} ngày`;
         color = 7506394; // Tím/Xanh khi khôi phục
       } else if (actionType === 'already_updated') {
         title = '⚡ Đã ghi nhận chuỗi Locket!';
-        description = `Tài khoản: ${accountName}\nNgày: ${currentTime}\nChuỗi: ${streakCount} ngày\nTrạng thái: Đã tự duy trì trong ứng dụng.`;
+        description = `Tài khoản: ${accountName}\nNgày: ${targetDateStr}\nChuỗi: ${streakCount} ngày\nTrạng thái: Đã tự duy trì trong ứng dụng.`;
         color = 3066993; // Xanh ngọc lục bảo (Emerald Green)
       }
 
@@ -292,7 +297,7 @@ async function sendNotification({ userData, actionType, streakCount }) {
 
         if (isRestore) {
           pushTitle = '⚡ Khôi phục chuỗi thành công!';
-          pushBody = `${accountName} • Chuỗi ${streakCount} ngày (Đã cứu chuỗi) • ${currentTime}`;
+          pushBody = `${accountName} • Khôi phục ngày ${targetDateStr} • Chuỗi ${streakCount} ngày`;
         } else if (actionType === 'already_updated') {
           pushTitle = '⚡ Đã ghi nhận chuỗi Locket!';
           pushBody = `${accountName} • Chuỗi ${streakCount} ngày (Đã tự duy trì) • ${currentTime}`;
@@ -470,7 +475,8 @@ export async function executeStreakForUser(uid) {
 
     // 2. Tìm các ngày bị đứt chuỗi và thực hiện khôi phục
     const missingDates = getMissingDates(lastUpdatedYMD, todayYMD);
-    for (const missedYMD of missingDates) {
+    for (let i = 0; i < missingDates.length; i++) {
+      const missedYMD = missingDates[i];
       const restoreRes = await postMoment({
         idToken,
         uid,
@@ -497,6 +503,11 @@ export async function executeStreakForUser(uid) {
         });
       } else {
         console.warn(`\x1b[33m  ⚠ [Streak] Khôi phục ngày ${missedYMD} (${uid.slice(0, 8)}...) thất bại:\x1b[0m`, restoreRes.error);
+      }
+
+      // Nghỉ nhẹ 800 - 1500ms giữa các ngày khôi phục để Locket xử lý tuần tự
+      if (i < missingDates.length - 1) {
+        await getRandomDelay(800, 1500);
       }
     }
 
