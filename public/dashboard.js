@@ -321,9 +321,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           diffDays = Math.round((todayUtc - lastUtc) / (86400 * 1000));
         }
 
-        // Nếu chuỗi đã đứt quá hạn (> 2 ngày):
+        // Nếu chuỗi đã đứt quá hạn (> 3 ngày, tức mất từ 3 ngày trở lên không thể khôi phục):
         // Hiển thị thẳng 0 ngày và lấy ngày hôm nay luôn, không hiện chuỗi cũ
-        if (diffDays > 2 || !lastDate) {
+        if (diffDays > 3 || !lastDate) {
           displayCount = 0;
           displayDate = formatDate(todayYMD);
         }
@@ -1409,15 +1409,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const isUpdatedToday = Boolean(streak.isMaintainedToday || (lastDate && lastDate >= todayYMD));
-    const isDead = diffDays > 2;
 
     let streakStatusBadge = '';
-    if (isUpdatedToday) {
+    let distanceText = 'Chưa rõ';
+
+    if (diffDays === 0 || isUpdatedToday) {
       streakStatusBadge = '<span class="detail-badge badge-success">Đã duy trì hôm nay</span>';
-    } else if (isDead) {
-      streakStatusBadge = '<span class="detail-badge badge-danger">Đã mất chuỗi (> 2 ngày)</span>';
+      distanceText = 'Hôm nay (Đã duy trì)';
+    } else if (diffDays === 1) {
+      // Hôm qua đã duy trì, hôm nay chưa nâng chuỗi
+      streakStatusBadge = '<span class="detail-badge badge-warning">Chưa duy trì hôm nay</span>';
+      distanceText = 'Hôm qua (Chưa duy trì)';
+    } else if (diffDays === 2) {
+      // Đã miss 1 ngày (hôm qua)
+      streakStatusBadge = '<span class="detail-badge badge-warning">Đã mất 1 ngày</span>';
+      distanceText = 'Trễ 1 ngày (Có thể khôi phục)';
+    } else if (diffDays === 3) {
+      // Đã miss 2 ngày (hôm kia & hôm qua)
+      streakStatusBadge = '<span class="detail-badge badge-warning">Đã mất 2 ngày</span>';
+      distanceText = 'Trễ 2 ngày (Có thể khôi phục)';
+    } else if (diffDays >= 4 && diffDays < 999) {
+      // Đã miss từ 3 ngày trở lên (vượt quá khả năng khôi phục của Locket)
+      const lostDays = diffDays - 1;
+      streakStatusBadge = `<span class="detail-badge badge-danger">Đã mất ${lostDays} ngày</span>`;
+      distanceText = `Trễ ${lostDays} ngày (Không thể khôi phục)`;
     } else {
-      streakStatusBadge = '<span class="detail-badge badge-warning">Cần duy trì / Có thể khôi phục</span>';
+      streakStatusBadge = '<span class="detail-badge badge-neutral">Chưa có chuỗi</span>';
+      distanceText = 'Chưa rõ';
     }
 
     let lastRunBadge = '<span class="detail-badge badge-neutral">Chưa có lượt chạy</span>';
@@ -1473,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <div class="detail-row">
               <span class="detail-label">Khoảng cách ngày</span>
-              <span class="detail-val">${diffDays === 0 ? 'Hôm nay' : (diffDays < 999 ? `Trễ ${diffDays} ngày (${isDead ? 'Hết hạn' : 'Có thể cứu'})` : 'Chưa rõ')}</span>
+              <span class="detail-val">${distanceText}</span>
             </div>
           </div>
         </div>

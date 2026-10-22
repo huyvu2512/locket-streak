@@ -107,11 +107,21 @@ function getMissingDates(lastUpdatedYMD, todayYMD) {
   const y = parseInt(lastStr.slice(0, 4), 10);
   const m = parseInt(lastStr.slice(4, 6), 10) - 1;
   const d = parseInt(lastStr.slice(6, 8), 10);
+  const lastUtc = Date.UTC(y, m, d);
 
-  let cur = new Date(Date.UTC(y, m, d));
+  const ty = parseInt(String(todayYMD).slice(0, 4), 10);
+  const tm = parseInt(String(todayYMD).slice(4, 6), 10) - 1;
+  const td = parseInt(String(todayYMD).slice(6, 8), 10);
+  const todayUtc = Date.UTC(ty, tm, td);
+
+  const diffDays = Math.round((todayUtc - lastUtc) / (86400 * 1000));
+  // Nếu khoảng cách > 3 ngày (tức đã mất từ 3 ngày trở lên, không tính hôm nay), Locket không thể khôi phục chuỗi
+  if (diffDays > 3) return [];
+
+  let cur = new Date(lastUtc);
   cur.setUTCDate(cur.getUTCDate() + 1);
 
-  // Khôi phục tối đa 2 ngày gần nhất (theo giới hạn khôi phục của Locket)
+  // Khôi phục tối đa 2 ngày gần nhất bị đứt (theo giới hạn khôi phục của Locket)
   let safety = 0;
   while (safety < 2) {
     const curYMD = parseInt(
