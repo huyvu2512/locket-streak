@@ -251,7 +251,6 @@ Tạo một tác vụ định kỳ trên [console.cron-job.org](https://console.
 | :--- | :--- |
 | [SECURITY.md](./SECURITY.md) | Chính sách bảo mật hệ thống, xử lý token và quy trình báo cáo lỗ hổng |
 | [LICENSE](./LICENSE) | Giấy phép mã nguồn mở MIT |
-| [Apple Shortcuts](https://streak.huyvu2512.io.vn/shortcuts) | Phím tắt hỗ trợ kích hoạt chuỗi nhanh 1 chạm trên iPhone |
 
 ---
 
