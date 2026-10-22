@@ -217,34 +217,6 @@ VAPID_SUBJECT=mailto:admin@streak.huyvu2512.io.vn
 
 ---
 
-## Tự động hóa với GitHub Actions & cron-job.org
-
-Hệ thống được thiết kế tối ưu để chạy tự động qua **GitHub Actions** kết hợp **cron-job.org** nhằm đảm bảo không bao giờ bị gián đoạn hay vượt quá thời gian thực thi (timeout) của các hàm Serverless:
-
-### 1. Cấu hình GitHub Repository Secrets
-Truy cập kho lưu trữ GitHub: **Settings** > **Secrets and variables** > **Actions** và thêm các biến bí mật sau:
-- `API_BASE_URL`: Địa chỉ tên miền triển khai của bạn (ví dụ: `https://streak.huyvu2512.io.vn`).
-- `CRON_SECRET`: Chuỗi khóa bí mật xác thực API (trùng khớp với biến `CRON_SECRET` đã cài trên Vercel).
-
-### 2. Thiết lập Lập lịch trên cron-job.org
-Tạo một tác vụ định kỳ trên [console.cron-job.org](https://console.cron-job.org):
-- **Title**: `Wakeup Locket Streak Workflow`
-- **URL**: `https://api.github.com/repos/huyvu2512/locket-streak/actions/workflows/streak.yml/dispatches`
-- **Request Method**: `POST`
-- **Request Headers**:
-  - `Accept`: `application/vnd.github+json`
-  - `Authorization`: `Bearer <YOUR_GITHUB_PERSONAL_ACCESS_TOKEN>`
-  - `X-GitHub-Api-Version`: `2022-11-28`
-  - `Content-Type`: `application/json`
-  - `User-Agent`: `cronjob-agent`
-- **Request Body**:
-  ```json
-  {"ref": "main"}
-  ```
-- **Schedule**: Thiết lập tần suất chạy phù hợp (ví dụ: chạy mỗi 30 phút hoặc vào các khung giờ cố định trong ngày).
-
----
-
 ## Tài liệu & Chính sách
 
 | Tài liệu | Nội dung |
