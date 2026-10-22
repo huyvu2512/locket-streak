@@ -171,18 +171,18 @@ Hệ thống cung cấp danh mục API hoàn chỉnh phục vụ xác thực, qu
 
 ```env
 # System Configuration
-API_BASE_URL=https://streak.huyvu2512.io.vn
+API_BASE_URL=https://your-domain.com
 CRON_SECRET=your_super_secret_cron_token_here
 
 # Locket Configuration
 LOCKET_FIREBASE_KEY=your_locket_firebase_api_key
-LOCKET_API_URL=https://api.locketcamera.com
-LOCKET_AUTH_URL=https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword
-LOCKET_REFRESH_TOKEN_URL=https://securetoken.googleapis.com/v1/token
-LOCKET_STORAGE_URL=https://firebasestorage.googleapis.com/v0/b
-LOCKET_STORAGE_BUCKET=locket-img.appspot.com
-LOCKET_BUNDLE_ID=com.locket.Locket
-LOCKET_CLIENT_VERSION=1.68.0
+LOCKET_API_URL=https://your_locket_api_url
+LOCKET_AUTH_URL=https://your_auth_endpoint
+LOCKET_REFRESH_TOKEN_URL=https://your_token_refresh_url
+LOCKET_STORAGE_URL=https://your_storage_url
+LOCKET_STORAGE_BUCKET=your_storage_bucket
+LOCKET_BUNDLE_ID=your_bundle_id
+LOCKET_CLIENT_VERSION=1.0.0
 
 # Firebase Firestore (Service Account)
 FIREBASE_PROJECT_ID=your_firebase_project_id
@@ -196,7 +196,7 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 # Web Push Notifications (VAPID)
 VAPID_PUBLIC_KEY=your_vapid_public_key
 VAPID_PRIVATE_KEY=your_vapid_private_key
-VAPID_SUBJECT=mailto:admin@streak.huyvu2512.io.vn
+VAPID_SUBJECT=mailto:your_email@example.com
 ```
 
 > [!TIP]
