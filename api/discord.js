@@ -70,7 +70,6 @@ export default async function discordHandler(req, res) {
       // Gửi 1 tin nhắn test qua Webhook theo đúng mẫu chuẩn
       const testPayload = {
         username: 'Locket Streak',
-        ...(process.env.DISCORD_BOT_AVATAR ? { avatar_url: process.env.DISCORD_BOT_AVATAR } : {}),
         embeds: [
           {
             title: 'Liên kết thành công!',
