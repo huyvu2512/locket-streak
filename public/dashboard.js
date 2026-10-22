@@ -570,6 +570,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           telegramBotUsername = resData.botUsername;
           telegramBotUsernameLoaded = true;
         }
+        if (resData.vapidPublicKey) {
+          cachedVapidPublicKey = resData.vapidPublicKey;
+          localStorage.setItem('locket_vapid_public_key', resData.vapidPublicKey);
+        }
         let hasChanges = false;
         resData.data.forEach(freshAcc => {
           const idx = accounts.findIndex(a => a.uid === freshAcc.uid);
@@ -698,6 +702,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let activeNotifyUid = null;
   let telegramBotUsername = 'LocketStreakBot';
+  let cachedVapidPublicKey = localStorage.getItem('locket_vapid_public_key') || null;
   let teleAutoCheckTimer = null;
   let currentTeleCode = null;
 
@@ -843,10 +848,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
 
-        // Lấy VAPID Public Key từ server
-        const keyRes = await fetch('/api/push');
-        const keyData = await keyRes.json();
-        if (!keyData.success || !keyData.publicKey) {
+        let key = cachedVapidPublicKey;
+        if (!key) {
+          const keyRes = await fetch('/api/push');
+          const keyData = await keyRes.json();
+          if (keyData.success && keyData.publicKey) {
+            key = keyData.publicKey;
+            cachedVapidPublicKey = key;
+            localStorage.setItem('locket_vapid_public_key', key);
+          }
+        }
+        if (!key) {
           throw new Error('Chưa thể lấy thông tin cấu hình VAPID từ server.');
         }
 
@@ -855,7 +867,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!sub) {
           sub = await reg.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
+            applicationServerKey: urlBase64ToUint8Array(key)
           });
         }
 

@@ -16,6 +16,7 @@ export default async function accountsHandler(req, res) {
   const uids = payload?.uids;
   const syncLive = String(payload?.syncLive) === 'true';
   const botUsername = (process.env.TELEGRAM_BOT_USERNAME || 'LocketStreakBot').replace('@', '').trim();
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
 
   if (!db) {
     return res.status(503).json({
@@ -114,6 +115,7 @@ export default async function accountsHandler(req, res) {
         count: data.length,
         syncedLive: false,
         botUsername,
+        vapidPublicKey,
         data
       });
     }
@@ -220,6 +222,7 @@ export default async function accountsHandler(req, res) {
       count: results.length,
       syncedLive: true,
       botUsername,
+      vapidPublicKey,
       data: results
     });
 
