@@ -25,8 +25,8 @@ Mọi hành vi sử dụng công cụ này vào mục đích trục lợi cá nh
    - Thông tin đăng ký thiết bị (`PushSubscription`) được lưu trữ phân vùng theo tài khoản (`users/{uid}/subscriptions/{endpointHash}`) và tự động thu hồi/dọn dẹp khi trình duyệt phản hồi mã trạng thái hết hạn (`404 Not Found` hoặc `410 Gone`).
 
 4. **Xác thực API Tự động hóa & Khóa bí mật (Cron Secret):**
-   - Các endpoint kích hoạt tiến trình tự động hóa như `/api/cron` và `/api/run` được bảo vệ bằng cơ chế xác thực chuỗi khóa bí mật `CRON_SECRET` thông qua header `Authorization: Bearer <CRON_SECRET>`.
-   - Bất kỳ yêu cầu nào không có khóa xác thực hoặc khóa không khớp đều bị từ chối ngay lập tức với mã lỗi `401 Unauthorized` / `403 Forbidden`.
+   - Endpoint kích hoạt tiến trình tự động hóa hàng loạt `/api/cron` được bảo vệ bằng cơ chế xác thực chuỗi khóa bí mật `CRON_SECRET` thông qua header `Authorization: Bearer <CRON_SECRET>` hoặc header `x-cron-secret`. Bất kỳ yêu cầu nào không có khóa xác thực hoặc khóa không khớp đều bị từ chối ngay lập tức.
+   - Endpoint thực thi chuỗi `/api/run` được bảo vệ chặt chẽ bởi cơ chế kiểm soát tần suất (Rate Limiting / Cooldown 30 giây), kiểm tra định dạng UID nghiêm ngặt và cơ chế phiên an toàn nhằm ngăn chặn hành vi quấy phá hoặc tấn công từ chối dịch vụ.
 
 5. **Kết nối Mã hóa Toàn trình (HTTPS / TLS):**
    - Toàn bộ lưu lượng truy cập giữa trình duyệt người dùng, mạng phân phối biên Vercel Edge Network, Firebase Firestore và các endpoint máy chủ Locket đều được mã hóa bằng giao thức HTTPS / TLS 1.3 tiêu chuẩn.

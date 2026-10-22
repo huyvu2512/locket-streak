@@ -82,7 +82,7 @@ locket-streak/
 │   ├── logout.js                 # Xử lý đăng xuất phiên làm việc
 │   ├── push.js                   # Quản lý VAPID key và đăng ký Web Push
 │   ├── run.js                    # Worker thực thi duy trì, khôi phục chuỗi & thông báo
-│   ├── streak.js                 # Kích hoạt chạy chuỗi thủ công tức thì
+│   ├── streak.js                 # Tra cứu thông số, lịch sử và trạng thái chuỗi thời gian thực
 │   ├── telegram.js               # Quản lý cấu hình Telegram Bot & Webhook
 │   └── verify.js                 # Xác thực tài khoản Locket & làm mới Token
 ├── public/                       # Giao diện người dùng & tài nguyên tĩnh
@@ -118,16 +118,16 @@ Hệ thống cung cấp danh mục API hoàn chỉnh phục vụ xác thực, qu
 
 | Endpoint | Method | Xác thực | Mô tả |
 | :--- | :--- | :--- | :--- |
-| `/api/verify` | `POST` | Public | Xác thực thông tin đăng nhập Locket bằng email và mật khẩu |
-| `/api/accounts` | `GET` / `POST` / `DELETE` | Client Session | Lấy danh sách tài khoản, chuyển đổi hoặc xóa tài khoản |
-| `/api/streak` | `POST` | Client Session | Kích hoạt duy trì chuỗi thủ công ngay lập tức cho 1 tài khoản |
+| `/api/verify` | `POST` | Public | Xác thực đăng nhập Locket bằng Email và mã OTP Firebase |
+| `/api/accounts` | `GET` / `POST` | Client Session | Lấy danh sách tài khoản, thông số chuỗi & trạng thái cấu hình |
+| `/api/streak` | `POST` | Client Session | Tra cứu thông số, số ngày chuỗi và cài đặt chi tiết của tài khoản |
 | `/api/auto` | `POST` | Client Session | Bật hoặc tắt trạng thái tự động giữ chuỗi hàng ngày |
-| `/api/push` | `GET` / `POST` / `DELETE` | Client Session | Lấy VAPID public key, đăng ký thiết bị nhận Web Push hoặc gửi test |
-| `/api/telegram` | `POST` | Client Session | Thiết lập Chat ID hoặc liên kết Bot Telegram nhận thông báo |
+| `/api/push` | `GET` / `POST` | Client Session | Lấy VAPID public key và đăng ký thiết bị nhận Web Push |
+| `/api/telegram` | `GET` / `POST` | Client Session | Thiết lập Chat ID hoặc liên kết Bot Telegram nhận thông báo |
 | `/api/discord` | `POST` | Client Session | Cấu hình Discord Webhook URL nhận thông báo kết quả |
-| `/api/cron` | `GET` | Bearer Token | Quét danh sách tài khoản đến giờ chạy và chuyển tiếp sang worker |
-| `/api/run` | `POST` | Bearer Token | Worker Serverless thực hiện chuỗi, khôi phục ngày đứt và gửi thông báo |
-| `/api/logout` | `POST` | Client Session | Đăng xuất phiên làm việc hiện tại |
+| `/api/cron` | `GET` / `POST` | Bearer Token (`CRON_SECRET`) | Quét toàn bộ tài khoản đến giờ chạy và chuyển tiếp sang worker |
+| `/api/run` | `POST` | Public (UID / Cooldown) | Thực thi duy trì, khôi phục chuỗi & gửi thông báo đa kênh |
+| `/api/logout` | `POST` | Client Session | Đăng xuất phiên làm việc an toàn |
 
 ---
 
@@ -251,7 +251,7 @@ Tạo một tác vụ định kỳ trên [console.cron-job.org](https://console.
 | :--- | :--- |
 | [SECURITY.md](./SECURITY.md) | Chính sách bảo mật hệ thống, xử lý token và quy trình báo cáo lỗ hổng |
 | [LICENSE](./LICENSE) | Giấy phép mã nguồn mở MIT |
-| [Apple Shortcuts](https://streak.huyvu2512.io.vn/) | Phím tắt hỗ trợ kích hoạt chuỗi nhanh 1 chạm trên iPhone |
+| [Apple Shortcuts](https://streak.huyvu2512.io.vn/shortcuts) | Phím tắt hỗ trợ kích hoạt chuỗi nhanh 1 chạm trên iPhone |
 
 ---
 
