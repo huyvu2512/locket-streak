@@ -701,7 +701,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const discordSaveLabel = document.getElementById('discord-save-label');
 
   let activeNotifyUid = null;
-  let telegramBotUsername = 'LocketStreakBot';
+  let telegramBotUsername = '';
   let cachedVapidPublicKey = localStorage.getItem('locket_vapid_public_key') || null;
   let teleAutoCheckTimer = null;
   let currentTeleCode = null;
@@ -719,7 +719,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       currentTeleCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     }
     if (btnOpenTelegramBot) {
-      btnOpenTelegramBot.href = `https://t.me/${telegramBotUsername}?start=${acc.uid}_${currentTeleCode}`;
+      if (telegramBotUsername) {
+        btnOpenTelegramBot.href = `https://t.me/${telegramBotUsername}?start=${acc.uid}_${currentTeleCode}`;
+      } else {
+        btnOpenTelegramBot.href = '#';
+      }
     }
   }
 
@@ -967,11 +971,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const acc = accounts.find(a => a.uid === activeNotifyUid);
     if (!acc) return;
 
-    if (!telegramBotUsernameLoaded) {
+    if (!telegramBotUsernameLoaded || !telegramBotUsername) {
       e.preventDefault();
       await ensureTelegramBotInfo();
       refreshTeleCode(acc);
-      window.open(btnOpenTelegramBot.href, '_blank');
+      if (telegramBotUsername) {
+        window.open(btnOpenTelegramBot.href, '_blank');
+      } else {
+        alert('Chưa cấu hình TELEGRAM_BOT_USERNAME trong biến môi trường hệ thống.');
+        return;
+      }
     }
 
     teleAutoCheckTimer = setTimeout(async () => {

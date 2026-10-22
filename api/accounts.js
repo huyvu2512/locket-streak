@@ -15,7 +15,7 @@ export default async function accountsHandler(req, res) {
   const payload = req.method === 'POST' ? req.body : req.query;
   const uids = payload?.uids;
   const syncLive = String(payload?.syncLive) === 'true';
-  const botUsername = (process.env.TELEGRAM_BOT_USERNAME || 'LocketStreakBot').replace('@', '').trim();
+  const botUsername = (process.env.TELEGRAM_BOT_USERNAME || '').replace('@', '').trim();
   const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
 
   if (!db) {
