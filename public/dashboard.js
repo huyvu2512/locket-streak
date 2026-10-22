@@ -749,39 +749,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     return localStorage.getItem('locket_webpush_' + uid) === 'true';
   }
 
-  // Tự động đăng ký Service Worker cho Web Push PWA và đồng bộ ngầm khi mở trang
+  // Tự động đăng ký Service Worker cho Web Push PWA (không gọi API nào khi load trang)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(err => {
       console.warn('[SW] Không thể đăng ký sw.js:', err.message);
     });
-
-    if ('PushManager' in window && 'Notification' in window && Notification.permission === 'granted') {
-      navigator.serviceWorker.ready.then(async (reg) => {
-        try {
-          const sub = await reg.pushManager.getSubscription();
-          if (sub) {
-            accounts.forEach(acc => {
-              if (acc && acc.uid && localStorage.getItem('locket_webpush_' + acc.uid) === null) {
-                fetch('/api/push', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'check', uid: acc.uid, endpoint: sub.endpoint })
-                }).then(r => r.json()).then(d => {
-                  if (d.success && d.subscribed) {
-                    localStorage.setItem('locket_webpush_' + acc.uid, 'true');
-                    if (activeNotifyUid === acc.uid && toggleNotifyWeb) {
-                      toggleNotifyWeb.checked = true;
-                    }
-                  } else {
-                    localStorage.setItem('locket_webpush_' + acc.uid, 'false');
-                  }
-                }).catch(() => {});
-              }
-            });
-          }
-        } catch (_) {}
-      });
-    }
   }
 
   window.openNotifyModal = async function (uid) {
