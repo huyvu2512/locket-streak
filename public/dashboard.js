@@ -728,8 +728,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (_) { }
   }
 
-  // Preload bot username ngay khi khởi động trang
-  ensureTelegramBotInfo();
 
   // Helper chuyển đổi VAPID public key cho PushManager
   function urlBase64ToUint8Array(base64String) {
