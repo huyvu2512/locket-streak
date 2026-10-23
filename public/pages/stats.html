@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FFE091">
+  <meta name="description" content="Thống kê thời gian thực và nhật ký hoạt động hệ thống Locket Streak.">
+
+  <!-- Desktop PWA & Android Homescreen -->
+  <meta name="application-name" content="Locket Streak">
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icon-512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json?v=4">
+
+  <!-- iOS Safari Add to Home Screen Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Locket Streak">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Thống Kê Hệ Thống • Locket Streak">
+  <meta property="og:description" content="Bảng điều khiển chỉ số và nhật ký hoạt động thời gian thực của Locket Streak.">
+  <meta property="og:image" content="/assets/preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Thống Kê Hệ Thống • Locket Streak">
+  <meta name="twitter:description" content="Bảng điều khiển chỉ số và nhật ký hoạt động thời gian thực của Locket Streak.">
+  <meta name="twitter:image" content="/assets/preview.png">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NC5G7434K0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-NC5G7434K0');
+  </script>
+
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+  <title>Thống Kê Hệ Thống • Locket Streak</title>
+  <link rel="stylesheet" href="/landing.css">
+
+  <style>
+    /* Stats Page Layout Styles (Synchronized with Warm Locket Gold Theme) */
+    .stats-main-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 34px 20px 80px 20px;
+    }
+
+    /* Page Header */
+    .page-header-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--color-black);
+      letter-spacing: -0.6px;
+      line-height: 1.2;
+    }
+
+    .page-subtitle {
+      font-size: 15px;
+      color: var(--color-muted);
+      margin-top: 5px;
+    }
+
+    /* 4 KPI Cards (Synchronized Warm Locket Glassmorphism) */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 34px;
+    }
+
+    .kpi-card {
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      padding: 22px 20px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      min-width: 0;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+    }
+
+    .kpi-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      min-width: 0;
+    }
+
+    .kpi-label {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: rgba(0, 0, 0, 0.55);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-badge-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .badge-gold {
+      background: rgba(245, 158, 11, 0.18);
+      color: #D97706;
+    }
+
+    .badge-orange {
+      background: rgba(234, 88, 12, 0.16);
+      color: #EA580C;
+    }
+
+    .badge-purple {
+      background: rgba(147, 51, 234, 0.16);
+      color: #7E22CE;
+    }
+
+    .badge-green {
+      background: rgba(16, 185, 129, 0.18);
+      color: #059669;
+    }
+
+    .kpi-value-row {
+      margin-bottom: 16px;
+      min-width: 0;
+    }
+
+    .kpi-number {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--color-black);
+      letter-spacing: -0.6px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .kpi-sub-text {
+      font-size: 13px;
+      color: var(--color-muted);
+      margin-top: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .kpi-sub-text strong {
+      color: var(--color-black);
+    }
+
+    /* 10-Segment Equalizer Meter Bars */
+    .meter-bar {
+      display: flex;
+      gap: 4px;
+      height: 8px;
+      width: 100%;
+    }
+
+    .meter-segment {
+      flex: 1;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 3px;
+      transition: background-color 0.3s ease;
+    }
+
+    .meter-gold .meter-segment.active {
+      background: #F59E0B;
+    }
+
+    .meter-orange .meter-segment.active {
+      background: #EA580C;
+    }
+
+    .meter-purple .meter-segment.active {
+      background: #8B5CF6;
+    }
+
+    .meter-green .meter-segment.active {
+      background: #10B981;
+    }
+
+    /* Bottom 2-Column Section (Logs on Left, Leaderboard on Right) */
+    .dashboard-columns {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 22px;
+    }
+
+    .panel-heading-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--color-black);
+      letter-spacing: -0.3px;
+    }
+
+    /* Real-Time Terminal Window (Developer Console Style) */
+    .terminal-window {
+      background: #111218;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+    }
+
+    .terminal-header {
+      background: #1A1C25;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .terminal-dots {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #FF5F56; }
+    .dot-yellow { background: #FFBD2E; }
+    .dot-green { background: #27C93F; }
+
+    .terminal-body {
+      padding: 14px 16px;
+      overflow-y: auto;
+      font-family: ui-monospace, 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      letter-spacing: -0.1px;
+      color: #CBD5E1;
+      flex: 1;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    }
+
+    .terminal-body::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 3px;
+    }
+
+    .log-line {
+      display: block;
+      margin-bottom: 3px;
+      word-break: break-word;
+    }
+
+    .log-time {
+      color: #64748B;
+      margin-right: 6px;
+      user-select: none;
+    }
+
+    .log-status-error {
+      color: #EF4444;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .log-status-warning {
+      color: #F59E0B;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .log-status-success {
+      color: #10B981;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .log-status-info {
+      color: #38BDF8;
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .log-user {
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+
+    .terminal-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 13px;
+      background: #10B981;
+      vertical-align: middle;
+      margin-left: 4px;
+      animation: blinkCursor 1s step-end infinite;
+    }
+
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Right Panel: Ranked Leaderboard (White Glassmorphism) */
+    .right-card-panel {
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      padding: 18px 22px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 480px;
+    }
+
+    .leaderboard-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    .rank-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      flex: 1;
+    }
+
+    .rank-row:last-child {
+      border-bottom: none;
+    }
+
+    .rank-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .rank-badge-1 {
+      background: rgba(245, 158, 11, 0.2);
+      color: #B45309;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .rank-badge-2 {
+      background: rgba(245, 158, 11, 0.14);
+      color: #D97706;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .rank-badge-3 {
+      background: rgba(245, 158, 11, 0.1);
+      color: #D97706;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .rank-badge-other {
+      background: rgba(0, 0, 0, 0.05);
+      color: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .user-info-col {
+      width: 140px;
+      flex-shrink: 0;
+    }
+
+    .user-name-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--color-black);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-handle-sub {
+      font-size: 12px;
+      color: var(--color-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    /* Smooth Horizontal Progress Bar (Light to Dark Gradient) */
+    .bar-track {
+      flex: 1;
+      height: 7px;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #FDE68A 0%, #F59E0B 55%, #D97706 100%);
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .rank-value {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--color-black);
+      min-width: 32px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Skeleton Loading Effects (Silky Smooth Shimmer Waves) */
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.05) 25%,
+        rgba(0, 0, 0, 0.13) 37%,
+        rgba(0, 0, 0, 0.05) 63%
+      );
+      background-size: 300% 100%;
+      animation: skeletonShimmer 1.4s ease-in-out infinite;
+      border-radius: 6px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .skeleton-dark {
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.04) 25%,
+        rgba(255, 255, 255, 0.13) 37%,
+        rgba(255, 255, 255, 0.04) 63%
+      );
+      background-size: 300% 100%;
+      animation: skeletonShimmer 1.4s ease-in-out infinite;
+      border-radius: 4px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    @keyframes skeletonShimmer {
+      0% {
+        background-position: 100% 0;
+      }
+      100% {
+        background-position: -100% 0;
+      }
+    }
+
+    /* Meter Loading State */
+    .meter-bar.is-loading .meter-segment {
+      background: rgba(0, 0, 0, 0.06);
+      animation: meterPulse 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes meterPulse {
+      0% { opacity: 0.35; }
+      100% { opacity: 0.85; }
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 960px) {
+      .stats-main-container {
+        padding: 24px 18px 60px 18px;
+      }
+      .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .dashboard-columns {
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+      .terminal-window,
+      .right-card-panel {
+        height: 420px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .stats-main-container {
+        padding: 18px 14px 50px 14px;
+      }
+      .page-header-row {
+        margin-bottom: 20px;
+      }
+      .page-title {
+        font-size: 24px;
+        letter-spacing: -0.4px;
+      }
+      .page-subtitle {
+        font-size: 13.5px;
+      }
+      .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 22px;
+      }
+      .kpi-card {
+        padding: 16px 14px 14px 14px;
+        border-radius: 16px;
+      }
+      .kpi-label {
+        font-size: 10px;
+        letter-spacing: 0.5px;
+      }
+      .kpi-badge-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+      }
+      .kpi-badge-icon svg {
+        width: 15px;
+        height: 15px;
+      }
+      .kpi-number {
+        font-size: 24px;
+      }
+      .kpi-sub-text {
+        font-size: 11.5px;
+        margin-top: 3px;
+      }
+      .meter-bar {
+        height: 6px;
+        gap: 3px;
+      }
+      .section-title {
+        font-size: 16.5px;
+      }
+      .terminal-window,
+      .right-card-panel {
+        height: 380px;
+        border-radius: 16px;
+      }
+      .terminal-header {
+        padding: 10px 14px;
+      }
+      .terminal-body {
+        padding: 12px 14px;
+        font-size: 10.5px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .right-card-panel {
+        padding: 14px 16px;
+      }
+      .rank-row {
+        gap: 10px;
+        padding: 10px 0;
+      }
+      .rank-badge {
+        width: 24px;
+        height: 24px;
+        border-radius: 7px;
+        font-size: 11px;
+      }
+      .user-info-col {
+        width: 100px;
+      }
+      .user-name-title {
+        font-size: 13px;
+      }
+      .user-handle-sub {
+        font-size: 11px;
+      }
+      .bar-track {
+        height: 6px;
+      }
+      .rank-value {
+        font-size: 13.5px;
+        min-width: 26px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+      .user-info-col {
+        width: 85px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation Bar (Synchronous Locket Header) -->
+  <header class="locket-header">
+    <div class="header-backdrop" aria-hidden="true">
+      <div class="backdrop-blur-1"></div>
+      <div class="backdrop-blur-2"></div>
+      <div class="backdrop-gradient"></div>
+    </div>
+    <nav class="locket-nav">
+      <!-- Left: Logo & Brand -->
+      <div class="nav-left">
+        <a href="/" class="brand-link" aria-label="Locket Streak">
+          <img src="/assets/logo.png" alt="Locket Streak" class="brand-logo-img">
+          <span class="brand-name">Locket Streak</span>
+        </a>
+      </div>
+
+      <!-- Center: 6 tabs -->
+      <ul class="nav-center">
+        <li><a href="/" class="nav-item">Trang chủ</a></li>
+        <li><a href="/dashboard" class="nav-item">Quản lý</a></li>
+        <li><a href="/shortcuts" class="nav-item">Phím tắt</a></li>
+        <li><a href="/stats" class="nav-item active">Thống kê</a></li>
+        <li><a href="/docs" class="nav-item">Tài liệu</a></li>
+        <li><a href="/terms" class="nav-item">Điều khoản</a></li>
+      </ul>
+
+      <!-- Right: Action CTA -->
+      <div class="nav-right">
+        <a href="/dashboard" class="nav-pill-cta desktop-only">Bắt đầu ngay</a>
+        <div class="mobile-toggle-wrap">
+          <button type="button" aria-label="Mở menu" aria-expanded="false" class="mobile-menu-btn" id="mobileMenuBtn">
+            <span class="burger-box" aria-hidden="true">
+              <span class="burger-bar burger-bar-top"></span>
+              <span class="burger-bar burger-bar-bottom"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-menu-drawer" id="mobileMenuDrawer" aria-hidden="true">
+      <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+      <div class="mobile-menu-content">
+        <ul class="mobile-nav-list">
+          <li><a href="/" class="mobile-nav-item">Trang chủ</a></li>
+          <li><a href="/dashboard" class="mobile-nav-item">Quản lý</a></li>
+          <li><a href="/shortcuts" class="mobile-nav-item">Phím tắt</a></li>
+          <li><a href="/stats" class="mobile-nav-item active">Thống kê</a></li>
+          <li><a href="/docs" class="mobile-nav-item">Tài liệu</a></li>
+          <li><a href="/terms" class="mobile-nav-item">Điều khoản</a></li>
+        </ul>
+        <div class="mobile-menu-cta-wrap">
+          <a href="/dashboard" class="btn-locket-primary mobile-cta-btn">Bắt đầu ngay</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="page-main">
+    <div class="stats-main-container">
+
+      <!-- Top Section Header -->
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">Dữ liệu hệ thống trên WebApp</h1>
+          <p class="page-subtitle">Theo dõi trạng thái duy trì, bảo vệ chuỗi và lịch sử hoạt động thời gian thực.</p>
+        </div>
+      </div>
+
+      <!-- 4 KPI Cards in Row (Exact Layout of Screenshot) -->
+      <div class="kpi-row">
+        <!-- Card 1: Tổng Thành Viên (Gold) -->
+        <div class="kpi-card">
+          <div class="kpi-top-row">
+            <span class="kpi-label">TỔNG THÀNH VIÊN</span>
+            <div class="kpi-badge-icon badge-gold">
+              <!-- Custom Inline SVG Users Icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value-row">
+            <div class="kpi-number" id="val-total-users"><span class="skeleton" style="width: 60px; height: 32px; border-radius: 8px;"></span></div>
+            <div class="kpi-sub-text" id="val-auto-count"><span class="skeleton" style="width: 140px; height: 13px;"></span></div>
+          </div>
+          <!-- 10-Segment Meter Bar (Gold) -->
+          <div class="meter-bar meter-gold is-loading" id="meter-total-users">
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+          </div>
+        </div>
+
+        <!-- Card 2: Duy Trì Hôm Nay (Orange) -->
+        <div class="kpi-card">
+          <div class="kpi-top-row">
+            <span class="kpi-label">DUY TRÌ HÔM NAY</span>
+            <div class="kpi-badge-icon badge-orange">
+              <!-- Custom Inline SVG Check Icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value-row">
+            <div class="kpi-number" id="val-today-count"><span class="skeleton" style="width: 75px; height: 32px; border-radius: 8px;"></span></div>
+            <div class="kpi-sub-text" id="val-today-sub"><span class="skeleton" style="width: 120px; height: 13px;"></span></div>
+          </div>
+          <!-- 10-Segment Meter Bar (Orange) -->
+          <div class="meter-bar meter-orange is-loading" id="meter-today-pct">
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+          </div>
+        </div>
+
+        <!-- Card 3: Tổng Chuỗi Bảo Vệ (Purple) -->
+        <div class="kpi-card">
+          <div class="kpi-top-row">
+            <span class="kpi-label">TỔNG CHUỖI BẢO VỆ</span>
+            <div class="kpi-badge-icon badge-purple">
+              <!-- Custom Inline SVG Flame Icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value-row">
+            <div class="kpi-number" id="val-total-streak"><span class="skeleton" style="width: 65px; height: 32px; border-radius: 8px;"></span></div>
+            <div class="kpi-sub-text">Ngày chuỗi tích lũy toàn hệ thống</div>
+          </div>
+          <!-- 10-Segment Meter Bar (Purple) -->
+          <div class="meter-bar meter-purple is-loading" id="meter-total-streak">
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+          </div>
+        </div>
+
+        <!-- Card 4: Kỷ Lục Chuỗi (Green) -->
+        <div class="kpi-card">
+          <div class="kpi-top-row">
+            <span class="kpi-label">KỶ LỤC CAO NHẤT</span>
+            <div class="kpi-badge-icon badge-green">
+              <!-- Custom Inline SVG Trophy Icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path>
+                <path d="M10 14.66V17c0 .55-.45 1-1 1H7"></path>
+                <path d="M14 14.66V17c0 .55.45 1 1 1h2"></path>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value-row">
+            <div class="kpi-number" id="val-max-streak"><span class="skeleton" style="width: 100px; height: 32px; border-radius: 8px;"></span></div>
+            <div class="kpi-sub-text" id="val-max-user"><span class="skeleton" style="width: 150px; height: 13px;"></span></div>
+          </div>
+          <!-- 10-Segment Meter Bar (Green) -->
+          <div class="meter-bar meter-green is-loading" id="meter-max-streak">
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+            <div class="meter-segment"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 Columns: Real-time Terminal Log (Left) & Top Ranking (Right) -->
+      <div class="dashboard-columns">
+
+        <!-- Left Column: Real-time Terminal Log (Exact Screenshot Replica) -->
+        <div>
+          <div class="panel-heading-row">
+            <h2 class="section-title">Real-time Activity Log</h2>
+          </div>
+
+          <div class="terminal-window">
+            <!-- Terminal Header (Mac Window Dots) -->
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="terminal-dot dot-red"></span>
+                <span class="terminal-dot dot-yellow"></span>
+                <span class="terminal-dot dot-green"></span>
+              </div>
+            </div>
+
+            <!-- Terminal Body (Monospace Live Logs) -->
+            <div class="terminal-body" id="terminal-log-feed">
+              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
+                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 250px; height: 11px;"></span>
+              </div>
+              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
+                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 200px; height: 11px;"></span>
+              </div>
+              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
+                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 230px; height: 11px;"></span>
+              </div>
+              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
+                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 270px; height: 11px;"></span>
+              </div>
+              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
+                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
+                <span class="skeleton-dark" style="width: 190px; height: 11px;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Top 5 Bảng Xếp Hạng Chuỗi -->
+        <div>
+          <div class="panel-heading-row">
+            <h2 class="section-title">Top 5 bảng xếp hạng chuỗi</h2>
+          </div>
+
+          <div class="right-card-panel">
+            <div class="leaderboard-container" id="leaderboard-container">
+              <!-- 5 Skeleton Rows -->
+              <div class="rank-row">
+                <span class="skeleton" style="width: 25px; height: 25px; border-radius: 7px;"></span>
+                <div class="user-info-col" style="display: flex; flex-direction: column; gap: 5px;">
+                  <span class="skeleton" style="width: 85px; height: 13px;"></span>
+                  <span class="skeleton" style="width: 60px; height: 10px;"></span>
+                </div>
+                <div class="bar-track" style="overflow: hidden;"><div class="skeleton" style="width: 100%; height: 100%;"></div></div>
+                <span class="skeleton" style="width: 26px; height: 16px;"></span>
+              </div>
+              <div class="rank-row">
+                <span class="skeleton" style="width: 25px; height: 25px; border-radius: 7px;"></span>
+                <div class="user-info-col" style="display: flex; flex-direction: column; gap: 5px;">
+                  <span class="skeleton" style="width: 95px; height: 13px;"></span>
+                  <span class="skeleton" style="width: 70px; height: 10px;"></span>
+                </div>
+                <div class="bar-track" style="overflow: hidden;"><div class="skeleton" style="width: 100%; height: 100%;"></div></div>
+                <span class="skeleton" style="width: 26px; height: 16px;"></span>
+              </div>
+              <div class="rank-row">
+                <span class="skeleton" style="width: 25px; height: 25px; border-radius: 7px;"></span>
+                <div class="user-info-col" style="display: flex; flex-direction: column; gap: 5px;">
+                  <span class="skeleton" style="width: 80px; height: 13px;"></span>
+                  <span class="skeleton" style="width: 55px; height: 10px;"></span>
+                </div>
+                <div class="bar-track" style="overflow: hidden;"><div class="skeleton" style="width: 100%; height: 100%;"></div></div>
+                <span class="skeleton" style="width: 26px; height: 16px;"></span>
+              </div>
+              <div class="rank-row">
+                <span class="skeleton" style="width: 25px; height: 25px; border-radius: 7px;"></span>
+                <div class="user-info-col" style="display: flex; flex-direction: column; gap: 5px;">
+                  <span class="skeleton" style="width: 90px; height: 13px;"></span>
+                  <span class="skeleton" style="width: 65px; height: 10px;"></span>
+                </div>
+                <div class="bar-track" style="overflow: hidden;"><div class="skeleton" style="width: 100%; height: 100%;"></div></div>
+                <span class="skeleton" style="width: 26px; height: 16px;"></span>
+              </div>
+              <div class="rank-row">
+                <span class="skeleton" style="width: 25px; height: 25px; border-radius: 7px;"></span>
+                <div class="user-info-col" style="display: flex; flex-direction: column; gap: 5px;">
+                  <span class="skeleton" style="width: 75px; height: 13px;"></span>
+                  <span class="skeleton" style="width: 50px; height: 10px;"></span>
+                </div>
+                <div class="bar-track" style="overflow: hidden;"><div class="skeleton" style="width: 100%; height: 100%;"></div></div>
+                <span class="skeleton" style="width: 26px; height: 16px;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer (Synchronous Locket Footer) -->
+  <footer class="locket-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-brand">
+          <img src="/assets/logo.png" alt="Locket Streak" class="footer-logo-img">
+          <span class="footer-title">Locket Streak</span>
+        </div>
+        <p class="footer-slogan">Tự động khôi phục & duy trì chuỗi Locket mỗi ngày</p>
+        <p class="footer-copyright">&copy; 2026 Locket Streak • Minh bạch & Bảo mật</p>
+      </div>
+
+      <nav class="footer-nav-group" aria-label="Điều hướng chân trang">
+        <div class="footer-nav-row">
+          <a href="/" class="footer-nav-link">Trang chủ</a>
+          <a href="/dashboard" class="footer-nav-link">Quản lý</a>
+          <a href="/shortcuts" class="footer-nav-link">Phím tắt</a>
+        </div>
+        <div class="footer-nav-row">
+          <a href="/stats" class="footer-nav-link active">Thống kê</a>
+          <a href="/docs" class="footer-nav-link">Tài liệu</a>
+          <a href="/terms" class="footer-nav-link">Điều khoản</a>
+        </div>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // Mobile Menu Drawer Controller
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenuDrawer = document.getElementById('mobileMenuDrawer');
+      const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+
+      function toggleMobileMenu(force) {
+        if (!mobileMenuBtn || !mobileMenuDrawer) return;
+        const isOpen = force !== undefined ? force : !mobileMenuDrawer.classList.contains('is-open');
+        mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        mobileMenuDrawer.classList.toggle('is-open', isOpen);
+        mobileMenuDrawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      }
+
+      if (mobileMenuBtn) {
+        let lastTap = 0;
+        mobileMenuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          toggleMobileMenu();
+        });
+        mobileMenuBtn.addEventListener('touchend', (e) => {
+          const now = Date.now();
+          if (now - lastTap < 350) {
+            e.preventDefault();
+          }
+          lastTap = now;
+        }, { passive: false });
+      }
+      if (mobileMenuBackdrop) {
+        mobileMenuBackdrop.addEventListener('click', () => toggleMobileMenu(false));
+      }
+      document.querySelectorAll('.mobile-nav-item, .mobile-cta-btn').forEach(item => {
+        item.addEventListener('click', () => toggleMobileMenu(false));
+      });
+    })();
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
+    // Cập nhật meter segments (10 block bar)
+    function updateMeter(containerId, activeCount) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.classList.remove('is-loading');
+      const count = Math.max(1, Math.min(10, activeCount));
+      const segments = container.querySelectorAll('.meter-segment');
+      segments.forEach((seg, index) => {
+        if (index < count) {
+          seg.classList.add('active');
+        } else {
+          seg.classList.remove('active');
+        }
+      });
+    }
+
+    // Rút gọn số lớn (1500 -> 1.5K, 20000 -> 20K, 20000000 -> 20M)
+    function formatCompactNumber(num) {
+      const n = Number(num);
+      if (isNaN(n) || n === 0) return '0';
+      const abs = Math.abs(n);
+      if (abs >= 1_000_000_000) {
+        return (n / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B';
+      }
+      if (abs >= 1_000_000) {
+        return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+      }
+      if (abs >= 1_000) {
+        return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+      }
+      return n.toLocaleString();
+    }
+
+    let hasLoadedData = false;
+
+    // Tải dữ liệu từ API
+    async function fetchStatsData() {
+      try {
+        const res = await fetch('/api/stats', { cache: 'no-store' });
+        const json = await res.json();
+        if (!res.ok || !json.success || !json.data) {
+          throw new Error(json.message || `HTTP ${res.status}`);
+        }
+
+        hasLoadedData = true;
+        const data = json.data;
+        const s = data.summary || {};
+
+        // 1. Cập nhật 4 KPI Cards
+        document.getElementById('val-total-users').textContent = formatCompactNumber(s.totalAccounts || 0);
+        document.getElementById('val-auto-count').textContent = `${formatCompactNumber(s.autoStreakCount || 0)} tài khoản bật Auto Streak`;
+        updateMeter('meter-total-users', Math.ceil(((s.totalAccounts || 1) / 10) * 10));
+
+        const todayDone = s.maintainedTodayCount || 0;
+        const total = s.totalAccounts || 1;
+        const todayPct = s.todayPercentage || 0;
+        document.getElementById('val-today-count').textContent = `${formatCompactNumber(todayDone)} / ${formatCompactNumber(total)}`;
+        const elTodaySub = document.getElementById('val-today-sub');
+        if (elTodaySub) {
+          elTodaySub.innerHTML = `<strong>${todayPct}%</strong> tỷ lệ hoàn thành`;
+        }
+        updateMeter('meter-today-pct', Math.round((todayPct / 100) * 10));
+
+        document.getElementById('val-total-streak').textContent = formatCompactNumber(s.totalStreakSum || 0);
+        updateMeter('meter-total-streak', 7);
+
+        document.getElementById('val-max-streak').textContent = `${formatCompactNumber(s.maxStreak || 0)} ngày`;
+        const elMaxUser = document.getElementById('val-max-user');
+        if (s.maxStreakUser) {
+          const mu = s.maxStreakUser;
+          elMaxUser.innerHTML = `Bởi <strong>${escapeHtml(mu.displayName)}</strong>`;
+          elMaxUser.setAttribute('title', `Bởi ${mu.displayName}`);
+        } else {
+          elMaxUser.textContent = 'Chưa ghi nhận';
+          elMaxUser.removeAttribute('title');
+        }
+        updateMeter('meter-max-streak', 10);
+
+        // 2. Điền Terminal Logs (CHỈ TÊN VÀ USERNAME, TUYỆT ĐỐI KHÔNG EMAIL / UID)
+        renderTerminalLogs(data.recentLogs || []);
+
+        // 3. Điền Top Leaderboard (CHỈ TÊN VÀ USERNAME)
+        renderLeaderboard(data.topStreaks || [], s.maxStreak || 1);
+
+      } catch (err) {
+        console.warn('[Stats] Fetch error:', err.message);
+        if (!hasLoadedData) {
+          const feed = document.getElementById('terminal-log-feed');
+          if (feed) {
+            feed.innerHTML = `
+              <div class="log-line" style="color: #F87171;">
+                <span class="log-time">[${new Date().toLocaleTimeString('vi-VN')}]</span>
+                <span style="color: #EF4444; font-weight: 700;">ERROR:</span>
+                <span>Không thể nạp dữ liệu thống kê (${escapeHtml(err.message)}). Đang thử lại...</span>
+              </div>
+            `;
+          }
+        }
+      }
+    }
+
+    // Render Terminal Logs
+    function renderTerminalLogs(logs) {
+      const feed = document.getElementById('terminal-log-feed');
+      if (!feed) return;
+
+      const lines = [];
+
+      if (!logs || logs.length === 0) {
+        lines.push(`
+          <div class="log-line" style="color: #64748B;">
+            <span>Chưa có nhật ký hoạt động nào gần đây.</span>
+          </div>
+        `);
+      } else {
+        // Duyệt qua danh sách logs thực tế từ API
+        logs.forEach(l => {
+        const timeStr = l.runAt ? `[${escapeHtml(l.runAt)}]` : `[Gần đây]`;
+        const nameToDisplay = l.username ? escapeHtml(l.username) : escapeHtml(l.displayName);
+        const userDisplay = `<span class="log-user" title="${escapeHtml(l.displayName)}">${nameToDisplay}</span>`;
+
+        if (l.action === 'streak_run') {
+          lines.push(`
+            <div class="log-line">
+              <span class="log-time">${timeStr}</span>
+              <span class="log-status-success">SUCCESS:</span>
+              <span>Duy trì thành công chuỗi <strong>${l.streakCount} ngày</strong> cho ${userDisplay}</span>
+            </div>
+          `);
+        } else {
+          lines.push(`
+            <div class="log-line">
+              <span class="log-time">${timeStr}</span>
+              <span class="log-status-info">INFO:</span>
+              <span>Tài khoản mới kết nối vào hệ thống: ${userDisplay}</span>
+            </div>
+          `);
+        }
+      });
+      }
+
+      feed.innerHTML = lines.join('');
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    // Render Bảng Xếp Hạng (Leaderboard)
+    function renderLeaderboard(list, maxStreak) {
+      const container = document.getElementById('leaderboard-container');
+      if (!container) return;
+
+      if (!list || list.length === 0) {
+        container.innerHTML = `<div style="color: var(--color-muted); text-align: center; padding: 20px;">Chưa có dữ liệu xếp hạng</div>`;
+        return;
+      }
+
+      const safeMax = Math.max(1, maxStreak);
+      const top5 = (list || []).slice(0, 5);
+
+      container.innerHTML = top5.map((u) => {
+        let badgeClass = 'rank-badge-other';
+
+        if (u.rank === 1) {
+          badgeClass = 'rank-badge-1';
+        } else if (u.rank === 2) {
+          badgeClass = 'rank-badge-2';
+        } else if (u.rank === 3) {
+          badgeClass = 'rank-badge-3';
+        }
+
+        const pct = Math.max(8, Math.round((u.streakCount / safeMax) * 100));
+        const usernameHtml = u.username ? escapeHtml(u.username) : 'Người dùng Locket';
+
+        return `
+          <div class="rank-row">
+            <div class="rank-badge ${badgeClass}">${u.rank}</div>
+            <div class="user-info-col">
+              <div class="user-name-title" title="${escapeHtml(u.displayName)}">${escapeHtml(u.displayName)}</div>
+              <div class="user-handle-sub">${usernameHtml}</div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: ${pct}%;"></div>
+            </div>
+            <div class="rank-value" title="${u.streakCount} ngày">${formatCompactNumber(u.streakCount)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchStatsData();
+      // Tự động làm mới mỗi 25 giây
+      setInterval(fetchStatsData, 25000);
+    });
+  </script>
+</body>
+
+</html>

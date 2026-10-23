@@ -46,6 +46,7 @@ Hệ thống hoạt động trực tiếp qua giao thức Locket API và cơ s�
 - **Thông báo đẩy Web Push đa thiết bị** - Hỗ trợ Web Push Notifications chuẩn VAPID qua Service Worker độc lập. Nhận thông báo kết quả chạy chuỗi ngay cả khi đã đóng trình duyệt trên máy tính, Android và iOS (PWA Home Screen).
 - **Thông báo đa nền tảng (Telegram & Discord)** - Gửi kết quả chạy chuỗi và khôi phục chi tiết theo thời gian thực qua Telegram Bot và Discord Webhook cá nhân.
 - **Quản lý đa tài khoản độc lập** - Dễ dàng liên kết, chuyển đổi và quản lý nhiều tài khoản Locket cùng lúc với cơ chế phân tách dữ liệu an toàn.
+- **Bảng thống kê & Nhật ký hoạt động Real-time** - Bảng điều khiển công khai (`/stats`) hiển thị trực quan các chỉ số toàn hệ thống (tổng thành viên, chuỗi bảo vệ, kỷ lục cao nhất, tỷ lệ hoàn thành hôm nay) cùng nhật ký hoạt động thời gian thực dạng terminal console, cam kết bảo vệ quyền riêng tư tuyệt đối (chỉ hiển thị username, không để lộ Email hay UID).
 - **Hỗ trợ Apple Shortcuts** - Tích hợp phím tắt iOS Shortcuts tiện lợi, cho phép giữ chuỗi 1 chạm hoặc lập lịch tự động qua ứng dụng Shortcuts trên iPhone.
 - **Tương thích ứng dụng PWA** - Hỗ trợ cài đặt ứng dụng trực tiếp ra màn hình chính (Add to Home Screen) trên máy tính, Android và iOS với giao diện Dark Mode cao cấp.
 - **Tích hợp GitHub Actions & Cron Worker** - Kiến trúc tách biệt API điều phối hàng đợi (`/api/cron`) và API thực thi (`/api/run`), tối ưu hóa cho GitHub Actions và các dịch vụ cronjob bên ngoài mà không lo gián đoạn vì giới hạn thời gian (timeout).
@@ -82,6 +83,7 @@ locket-streak/
 │   ├── logout.js                 # Xử lý đăng xuất phiên làm việc
 │   ├── push.js                   # Quản lý VAPID key và đăng ký Web Push
 │   ├── run.js                    # Worker thực thi duy trì, khôi phục chuỗi & thông báo
+│   ├── stats.js                  # Thống kê chỉ số hệ thống, kỷ lục chuỗi & nhật ký hoạt động
 │   ├── streak.js                 # Tra cứu thông số, lịch sử và trạng thái chuỗi thời gian thực
 │   ├── telegram.js               # Quản lý cấu hình Telegram Bot & Webhook
 │   └── verify.js                 # Xác thực tài khoản Locket & làm mới Token
@@ -91,6 +93,7 @@ locket-streak/
 │   │   ├── dashboard.html        # Bảng điều khiển quản trị tài khoản
 │   │   ├── docs.html             # Tài liệu đặc tả API & hướng dẫn
 │   │   ├── shortcuts.html        # Hướng dẫn Apple Shortcuts cho iOS
+│   │   ├── stats.html            # Bảng thống kê hệ thống & nhật ký hoạt động thời gian thực
 │   │   └── terms.html            # Điều khoản dịch vụ & quyền riêng tư
 │   ├── dashboard.css             # Stylesheet Dark Theme responsive cho Dashboard
 │   ├── dashboard.js              # Xử lý tương tác, modal, Web Push phía client
@@ -122,6 +125,7 @@ Hệ thống cung cấp danh mục API hoàn chỉnh phục vụ xác thực, qu
 | `/api/accounts` | `GET` / `POST` | Client Session | Lấy danh sách tài khoản, thông số chuỗi & trạng thái cấu hình |
 | `/api/streak` | `POST` | Client Session | Tra cứu thông số, số ngày chuỗi và cài đặt chi tiết của tài khoản |
 | `/api/auto` | `POST` | Client Session | Bật hoặc tắt trạng thái tự động giữ chuỗi hàng ngày |
+| `/api/stats` | `GET` | Public | Thống kê chỉ số hệ thống, kỷ lục chuỗi & nhật ký hoạt động (ẩn danh) |
 | `/api/push` | `GET` / `POST` | Client Session | Lấy VAPID public key và đăng ký thiết bị nhận Web Push |
 | `/api/telegram` | `GET` / `POST` | Client Session | Thiết lập Chat ID hoặc liên kết Bot Telegram nhận thông báo |
 | `/api/discord` | `POST` | Client Session | Cấu hình Discord Webhook URL nhận thông báo kết quả |

@@ -25,6 +25,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://streak.huyvu2512.io.vn/stats</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://streak.huyvu2512.io.vn/terms</loc>
     <lastmod>2026-10-21</lastmod>
     <changefreq>monthly</changefreq>

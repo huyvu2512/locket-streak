@@ -148,11 +148,12 @@
         </a>
       </div>
 
-      <!-- Center: Navigation Menu (5 tabs) -->
+      <!-- Center: Navigation Menu (6 tabs) -->
       <ul class="nav-center">
         <li><a href="/" class="nav-item">Trang chủ</a></li>
         <li><a href="/dashboard" class="nav-item">Quản lý</a></li>
         <li><a href="/shortcuts" class="nav-item">Phím tắt</a></li>
+        <li><a href="/stats" class="nav-item">Thống kê</a></li>
         <li><a href="/docs" class="nav-item active">Tài liệu</a></li>
         <li><a href="/terms" class="nav-item">Điều khoản</a></li>
       </ul>
@@ -180,6 +181,7 @@
           <li><a href="/" class="mobile-nav-item">Trang chủ</a></li>
           <li><a href="/dashboard" class="mobile-nav-item">Quản lý</a></li>
           <li><a href="/shortcuts" class="mobile-nav-item">Phím tắt</a></li>
+          <li><a href="/stats" class="mobile-nav-item">Thống kê</a></li>
           <li><a href="/docs" class="mobile-nav-item active">Tài liệu</a></li>
           <li><a href="/terms" class="mobile-nav-item">Điều khoản</a></li>
         </ul>
@@ -261,6 +263,43 @@
   -d '{"uid": "YOUR_LOCKET_UID"}'</code></pre>
         </div>
 
+        <!-- 2. GET /api/stats -->
+        <div class="shortcut-card" style="border-radius: 24px; padding: 28px;">
+          <div style="margin-bottom: 8px;">
+            <span class="http-method" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-weight: 800; font-size: 11px; padding: 4px 9px; border-radius: 6px; letter-spacing: 0.5px;">GET</span>
+            <span class="endpoint-badge">/api/stats</span>
+          </div>
+          <p class="card-desc" style="margin-bottom: 14px;">Lấy toàn bộ số liệu thống kê thời gian thực của hệ thống Locket Streak bao gồm tổng tài khoản, tài khoản bật Auto, chuỗi bảo vệ, kỷ lục cao nhất, bảng xếp hạng và nhật ký hoạt động. Dữ liệu công khai và cam kết bảo vệ quyền riêng tư tuyệt đối (chỉ hiển thị username, không để lộ Email hay UID).</p>
+
+          <div class="param-label">Response 200 (Thành công) <span class="badge-status status-200">200 OK</span></div>
+          <pre class="code-box"><code>{
+  "success": true,
+  "cached": false,
+  "data": {
+    "summary": {
+      "totalAccounts": 8,
+      "maintainedTodayCount": 4,
+      "todayPercentage": 50,
+      "totalStreakSum": 222,
+      "maxStreak": 207,
+      "maxStreakUser": {
+        "displayName": "Huy Vũ",
+        "username": "@huyvu_2512",
+        "avatarUrl": "https://...",
+        "streakCount": 207
+      },
+      "autoStreakCount": 2
+    },
+    "topStreaks": [ ... ],
+    "recentLogs": [ ... ],
+    "serverTime": "2026-10-23 14:40:00"
+  }
+}</code></pre>
+
+          <div class="param-label">Ví dụ cURL</div>
+          <pre class="code-box"><code>curl -X GET https://YOUR_DOMAIN/api/stats</code></pre>
+        </div>
+
       </div>
     </section>
   </main>
@@ -284,6 +323,7 @@
           <a href="/shortcuts" class="footer-nav-link">Phím tắt</a>
         </div>
         <div class="footer-nav-row">
+          <a href="/stats" class="footer-nav-link">Thống kê</a>
           <a href="/docs" class="footer-nav-link active">Tài liệu</a>
           <a href="/terms" class="footer-nav-link">Điều khoản</a>
         </div>

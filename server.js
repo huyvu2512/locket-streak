@@ -14,6 +14,7 @@ import cronHandler from './api/cron.js';
 import logoutHandler from './api/logout.js';
 import accountsHandler from './api/accounts.js';
 import pushHandler from './api/push.js';
+import statsHandler from './api/stats.js';
 
 dotenv.config();
 
@@ -93,7 +94,9 @@ app.get('/shortcuts', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'shortcuts.html'));
 });
 
-
+app.get('/stats', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'stats.html'));
+});
 
 // Root icon & crawler fallbacks (seamless resolution for external crawlers/devices)
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public', 'assets', 'favicon.ico')));
@@ -122,6 +125,7 @@ app.all('/api/cron', cronHandler);
 app.all('/api/logout', logoutHandler);
 app.all('/api/accounts', accountsHandler);
 app.all('/api/push', pushHandler);
+app.all('/api/stats', statsHandler);
 
 // Khởi chạy server
 app.listen(PORT, () => {

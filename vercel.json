@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/dashboard", "destination": "/pages/dashboard.html" },
     { "source": "/shortcuts", "destination": "/pages/shortcuts.html" },
+    { "source": "/stats", "destination": "/pages/stats.html" },
     { "source": "/docs", "destination": "/pages/docs.html" },
     { "source": "/terms", "destination": "/pages/terms.html" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
