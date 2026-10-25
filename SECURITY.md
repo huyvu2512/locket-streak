@@ -15,9 +15,10 @@ Mọi hành vi sử dụng công cụ này vào mục đích trục lợi cá nh
    - Khi token hết hạn, hệ thống chỉ giao tiếp trực tiếp với dịch vụ chính thức của Google (`securetoken.googleapis.com`) để làm mới token trong bộ nhớ tạm thời và cập nhật lại vào tài liệu người dùng.
    - Hệ thống tuyệt đối không bao giờ trả về mật khẩu gốc, token nhạy cảm hay private key qua các phản hồi API công khai.
 
-2. **Phân tách Dữ liệu Người dùng Tuyệt đối:**
+2. **Phân tách Dữ liệu Người dùng & Xác thực Chủ sở hữu (Session Secret):**
    - Dữ liệu tài khoản, cấu hình thông báo và danh sách đăng ký thiết bị được phân vùng độc lập theo định danh người dùng (`users/{uid}`).
-   - Các thao tác cập nhật hoặc đọc dữ liệu chỉ áp dụng trên đúng phạm vi tài khoản của người dùng tương ứng, ngăn chặn hoàn toàn rủi ro rò rỉ hoặc truy cập chéo giữa các tài khoản khác nhau.
+   - **Cơ chế Session Secret:** Mỗi tài khoản khi xác thực thành công qua email sẽ được cấp một khóa bảo mật phiên ngẫu nhiên (`sessionSecret` chuẩn 32 ký tự hex) lưu trữ tại trình duyệt người dùng. Mọi hành động can thiệp đặc quyền như Bật/Tắt Auto Streak (`/api/auto`), Đăng xuất phiên (`/api/logout`) hoặc Xóa vĩnh viễn tài khoản (`/api/delete`) bắt buộc phải cung cấp đúng `sessionSecret` này. Điều này ngăn chặn hoàn toàn việc người khác đoán hoặc dùng `uid` công khai để thao túng tài khoản của người dùng.
+   - Các thao tác cập nhật hoặc đọc dữ liệu chỉ áp dụng trên đúng phạm vi tài khoản của người dùng tương ứng, ngăn chặn rủi ro rò rỉ hoặc can thiệp chéo giữa các tài khoản khác nhau.
 
 3. **Bảo mật Thông báo Đẩy Web Push:**
    - Hệ thống triển khai chuẩn mã hóa **VAPID (Voluntary Application Server Identification)** theo đặc tả RFC 8292.

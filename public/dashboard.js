@@ -4,8 +4,59 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // State
+  // Helper quản lý sessionSecret độc lập trong localStorage để không bao giờ bị ghi đè hay mất khi sync API
+  function getStoredSessionSecrets() {
+    try {
+      return JSON.parse(localStorage.getItem('locket_session_secrets') || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  function saveSessionSecret(uid, secret) {
+    if (!uid || !secret) return;
+    const secrets = getStoredSessionSecrets();
+    secrets[uid] = secret;
+    localStorage.setItem('locket_session_secrets', JSON.stringify(secrets));
+  }
+
+  function getSessionSecret(uid) {
+    if (!uid) return null;
+    const secrets = getStoredSessionSecrets();
+    return secrets[uid] || null;
+  }
+
+  function removeSessionSecret(uid) {
+    if (!uid) return;
+    const secrets = getStoredSessionSecrets();
+    delete secrets[uid];
+    localStorage.setItem('locket_session_secrets', JSON.stringify(secrets));
+  }
+
+  function clearAccountCache(uid) {
+    if (!uid) return;
+    removeSessionSecret(uid);
+    localStorage.removeItem('locket_webpush_' + uid);
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && (key.includes(uid) || key.startsWith(`locket_${uid}`))) {
+        localStorage.removeItem(key);
+      }
+    }
+  }
+
+  // State: Khôi phục và đảm bảo mọi tài khoản đều gắn với sessionSecret tương ứng
   let accounts = JSON.parse(localStorage.getItem('locket_accounts') || '[]');
+  accounts.forEach(acc => {
+    if (acc && acc.uid) {
+      if (acc.sessionSecret) {
+        saveSessionSecret(acc.uid, acc.sessionSecret);
+      } else {
+        const storedSec = getSessionSecret(acc.uid);
+        if (storedSec) acc.sessionSecret = storedSec;
+      }
+    }
+  });
 
   // Elements
   const barAccountCount = document.getElementById('bar-account-count');
@@ -46,7 +97,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       iconHide.style.display = 'none';
     }
     modalFeedback.style.display = 'none';
+    if (modalBtnLabel) {
+      modalBtnLabel.textContent = 'Thêm tài khoản';
+    }
+    const titleEl = modalAddAcc.querySelector('.modal-title');
+    if (titleEl) {
+      titleEl.textContent = 'Thêm tài khoản Locket';
+    }
   }
+
+  // Mở modal đăng nhập lại cho tài khoản hết hạn phiên
+  window.openReloginModal = function (uid, email) {
+    if (modalAddAcc) {
+      modalAddAcc.style.display = 'flex';
+      modalFeedback.style.display = 'none';
+      if (modalEmail && email) {
+        modalEmail.value = email;
+      }
+      if (modalBtnLabel) {
+        modalBtnLabel.textContent = 'Cập nhật phiên';
+      }
+      const titleEl = modalAddAcc.querySelector('.modal-title');
+      if (titleEl) {
+        titleEl.textContent = 'Đăng nhập lại tài khoản';
+      }
+      if (modalPassword) {
+        modalPassword.value = '';
+        modalPassword.focus();
+      }
+    }
+  };
 
   btnOpenModal?.addEventListener('click', openModal);
   document.getElementById('btn-open-modal-mobile-top')?.addEventListener('click', openModal);
@@ -161,6 +241,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const existingIdx = accounts.findIndex(a => a.uid === info.uid || (a.email && info.email && a.email.toLowerCase() === info.email.toLowerCase()));
 
       const prev = existingIdx >= 0 ? accounts[existingIdx] : {};
+      const secret = info.sessionSecret || prev.sessionSecret || getSessionSecret(info.uid) || null;
+      if (secret) {
+        saveSessionSecret(info.uid, secret);
+      }
+
       const updatedAcc = {
         uid: info.uid,
         email: info.email || prev.email,
@@ -174,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         telegramId: info.telegramId !== undefined ? info.telegramId : (prev.telegramId || null),
         discordId: info.discordId !== undefined ? info.discordId : (prev.discordId || null),
         webNotify: info.webNotify !== undefined ? info.webNotify : (prev.webNotify ?? false),
-        sessionSecret: info.sessionSecret || prev.sessionSecret || null,
+        sessionSecret: secret,
         firstLoginAt: info.firstLoginAt || prev.firstLoginAt || info.lastLoginAt,
         lastLoginAt: info.lastLoginAt
       };
@@ -210,6 +295,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const uniqueMap = new Map();
     for (const acc of accounts) {
       if (acc && acc.uid) {
+        const sec = acc.sessionSecret || getSessionSecret(acc.uid);
+        if (sec) {
+          acc.sessionSecret = sec;
+          saveSessionSecret(acc.uid, sec);
+        }
         if (uniqueMap.has(acc.uid)) {
           uniqueMap.set(acc.uid, { ...uniqueMap.get(acc.uid), ...acc });
         } else {
@@ -218,7 +308,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
     accounts = Array.from(uniqueMap.values());
-    localStorage.setItem('locket_accounts', JSON.stringify(accounts));
+    if (accounts.length === 0) {
+      localStorage.removeItem('locket_accounts');
+      localStorage.removeItem('locket_session_secrets');
+    } else {
+      localStorage.setItem('locket_accounts', JSON.stringify(accounts));
+    }
   }
 
   // Render Skeleton Loading Placeholder
@@ -329,8 +424,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
+      const isExpired = Boolean(acc.isSessionExpired);
+
+      const actionRunBtn = isExpired
+        ? `<button type="button" class="acc-btn acc-btn-relogin" onclick="window.openReloginModal('${acc.uid}', '${escapeHtml(acc.email || '')}')" title="Phiên làm việc đã hết hạn. Bấm để đăng nhập lại.">
+            <svg class="acc-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <span>Đăng nhập lại</span>
+          </button>`
+        : `<button type="button" id="btn-run-${acc.uid}" class="acc-btn acc-btn-run" onclick="runManual('${acc.uid}', this)">
+            <svg class="acc-btn-icon acc-icon-lightning" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Chạy thủ công</span>
+          </button>`;
+
+      const expiredBadge = isExpired
+        ? `<span class="session-badge-expired">⚠️ Hết phiên</span>`
+        : '';
+
+      const switchSub = isExpired
+        ? `<span class="switch-sub switch-sub-error">⚠️ Phiên hết hạn - cần đăng nhập lại</span>`
+        : `<span class="switch-sub">Tự động giữ chuỗi hàng ngày</span>`;
+
       return `
-        <div class="account-card" data-uid="${acc.uid}">
+        <div class="account-card ${isExpired ? 'is-expired' : ''}" data-uid="${acc.uid}">
           <div class="acc-card-top">
             <div class="acc-profile-group">
               <div class="acc-avatar-wrap">
@@ -340,6 +455,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="acc-name-row">
                   <h4 class="acc-name">${escapeHtml(acc.displayName || acc.email)}</h4>
                   ${acc.username ? `<span class="acc-username">@${escapeHtml(acc.username)}</span>` : ''}
+                  ${expiredBadge}
                 </div>
                 <span class="acc-email">${escapeHtml(acc.email)}</span>
               </div>
@@ -356,29 +472,46 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="acc-card-bottom">
             <div class="acc-auto-switch">
               <label class="toggle-switch">
-                <input type="checkbox" ${acc.autoStreak ? 'checked' : ''} onclick="window.handleToggleAuto('${acc.uid}', this, event)">
+                <input type="checkbox" ${acc.autoStreak && !isExpired ? 'checked' : ''} ${isExpired ? 'disabled' : ''} onclick="window.handleToggleAuto('${acc.uid}', this, event)">
                 <span class="slider"></span>
               </label>
               <div class="switch-text-group">
                 <span class="switch-title">Tự động giữ chuỗi</span>
-                <span class="switch-sub">Tự động giữ chuỗi hàng ngày</span>
+                ${switchSub}
               </div>
             </div>
 
             <div class="acc-actions-row">
-              ${teleButton}
-              <button type="button" id="btn-run-${acc.uid}" class="acc-btn acc-btn-run" onclick="runManual('${acc.uid}', this)">
-                <svg class="acc-btn-icon acc-icon-lightning" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                <span>Chạy thủ công</span>
-              </button>
+              ${isExpired ? '' : teleButton}
+              ${actionRunBtn}
               <button type="button" class="acc-btn acc-btn-detail" onclick="window.openDetailModal('${acc.uid}')" title="Xem chi tiết thông số tài khoản">
                 <svg class="acc-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 <span>Chi tiết</span>
               </button>
-              <button type="button" class="acc-btn acc-btn-delete" onclick="deleteAccount('${acc.uid}')" title="Đăng xuất tài khoản">
-                <svg class="acc-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Đăng xuất
-              </button>
+              <div class="acc-action-dropdown-wrap" id="menu-wrap-${acc.uid}">
+                <button type="button" class="acc-btn acc-btn-options" id="btn-options-${acc.uid}" onclick="window.toggleOptionsMenu('${acc.uid}', event)" title="Tùy chọn tài khoản">
+                  <svg class="acc-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/><circle cx="5" cy="12" r="1.5"/></svg>
+                  <span>Tùy chọn</span>
+                  <svg class="acc-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="acc-dropdown-menu" id="dropdown-${acc.uid}">
+                  <button type="button" class="menu-item menu-item-logout" onclick="window.handleDeviceLogout('${acc.uid}')">
+                    <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <div class="menu-item-text">
+                      <span class="menu-item-title">Đăng xuất thiết bị</span>
+                      <span class="menu-item-sub">Gỡ khỏi máy, bot vẫn chạy</span>
+                    </div>
+                  </button>
+                  <div class="menu-divider"></div>
+                  <button type="button" class="menu-item menu-item-danger" onclick="window.handleDeleteAccount('${acc.uid}')">
+                    <svg class="menu-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    <div class="menu-item-text">
+                      <span class="menu-item-title">Xóa khỏi hệ thống</span>
+                      <span class="menu-item-sub">Xóa dữ liệu, hủy auto</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -395,6 +528,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const acc = accounts.find(a => a.uid === uid);
     if (!acc) return;
 
+    if (acc.isSessionExpired) {
+      checkboxEl.checked = false;
+      alert(`Tài khoản "${acc.displayName || acc.email}" đã hết hạn phiên làm việc. Vui lòng bấm "Đăng nhập lại" trước.`);
+      return;
+    }
+
     // Trạng thái người dùng vừa gạt sang trên UI
     const desiredState = checkboxEl.checked;
     const previousState = !desiredState;
@@ -408,6 +547,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        if (data.isSessionExpired) {
+          acc.isSessionExpired = true;
+          acc.autoStreak = false;
+          saveAccounts();
+          renderAccounts();
+        }
         throw new Error(data.message || 'Lỗi khi cập nhật tự động giữ chuỗi.');
       }
 
@@ -422,9 +567,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   // Run Manual
-  window.runManual = async function (uid, clickedBtn) {
+  window.runManual = async function (uid, clickedBtn, isBatch = false) {
     const acc = accounts.find(a => a.uid === uid);
-    if (!acc) return;
+    if (!acc) return { success: false, message: 'Không tìm thấy tài khoản.' };
 
     const btn = clickedBtn || document.getElementById(`btn-run-${uid}`);
     const originalHtml = btn ? btn.innerHTML : '';
@@ -451,8 +596,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.classList.remove('is-running');
             btn.innerHTML = originalHtml;
           }
-          alert(data.message || 'Thao tác quá nhanh! Vui lòng đợi chút rồi thử lại.');
-          return;
+          if (!isBatch) {
+            alert(data.message || 'Thao tác quá nhanh! Vui lòng đợi chút rồi thử lại.');
+          }
+          return { success: false, cooldown: true, remaining: data.remaining };
+        }
+        if (res.status === 401 || data.isSessionExpired || data.message?.includes('hết hạn') || data.message?.includes('đăng xuất')) {
+          acc.isSessionExpired = true;
+          acc.autoStreak = false;
+          saveAccounts();
+          renderAccounts();
+          if (!isBatch) {
+            alert(`Phiên đăng nhập của tài khoản "${acc.displayName || acc.email}" đã hết hạn. Vui lòng bấm "Đăng nhập lại" để cập nhật phiên mới.`);
+          }
+          return { success: false, isSessionExpired: true };
         }
         throw new Error(data.message || 'Lỗi khi cộng chuỗi.');
       }
@@ -484,6 +641,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 1800);
       }
 
+      return { success: true, streakCount: acc.streakCount };
+
     } catch (err) {
       console.error('[Run Manual] Lỗi:', err.message);
       if (btn) {
@@ -498,29 +657,206 @@ document.addEventListener('DOMContentLoaded', async () => {
           btn.innerHTML = originalHtml;
         }, 2000);
       }
+      return { success: false, message: err.message };
     }
   };
 
-  // Delete Account (Đăng xuất tài khoản)
-  window.deleteAccount = async function (uid) {
+  // Quản lý hiển thị trạng thái xử lý loading trên thẻ tài khoản
+  function setCardProcessing(uid, isProcessing, text = 'Đang xử lý...') {
+    const card = document.querySelector(`.account-card[data-uid="${uid}"]`);
+    if (!card) return;
+
+    const existingOverlay = card.querySelector('.card-processing-overlay');
+    if (isProcessing) {
+      card.classList.add('is-processing');
+      if (!existingOverlay) {
+        const overlay = document.createElement('div');
+        overlay.className = 'card-processing-overlay';
+        overlay.innerHTML = `
+          <div class="card-spinner"></div>
+          <span class="processing-text">${escapeHtml(text)}</span>
+        `;
+        card.appendChild(overlay);
+      }
+    } else {
+      card.classList.remove('is-processing');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+    }
+  }
+
+  // Quản lý đóng/mở dropdown menu Tùy chọn
+  window.toggleOptionsMenu = function (uid, event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const targetMenu = document.getElementById(`dropdown-${uid}`);
+    const targetBtn = document.getElementById(`btn-options-${uid}`);
+    const card = document.querySelector(`.account-card[data-uid="${uid}"]`);
+    if (!targetMenu) return;
+
+    const isShown = targetMenu.classList.contains('show');
+
+    // Đóng tất cả menu khác và xóa class menu-open trên các thẻ
+    document.querySelectorAll('.acc-dropdown-menu.show').forEach(el => {
+      el.classList.remove('show');
+      el.classList.remove('dropup');
+      el.style.left = '';
+      el.style.right = '';
+    });
+    document.querySelectorAll('.acc-btn-options.active').forEach(el => {
+      el.classList.remove('active');
+    });
+    document.querySelectorAll('.account-card.menu-open').forEach(el => {
+      el.classList.remove('menu-open');
+    });
+
+    if (!isShown) {
+      targetMenu.style.left = '';
+      targetMenu.style.right = '';
+
+      // Tự động kiểm tra khoảng cách đáy màn hình: nếu quá sát đáy (< 190px) thì mở hướng lên trên (dropup)
+      if (targetBtn) {
+        const rect = targetBtn.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        if (spaceBelow < 190 && rect.top > 190) {
+          targetMenu.classList.add('dropup');
+        } else {
+          targetMenu.classList.remove('dropup');
+        }
+
+        // Tự động kiểm tra mép màn hình: nếu căn phải mà mép trái bị tràn màn hình (< 12px) thì chuyển sang căn trái
+        targetMenu.classList.add('show');
+        const menuRect = targetMenu.getBoundingClientRect();
+        if (menuRect.left < 12) {
+          targetMenu.style.left = '0';
+          targetMenu.style.right = 'auto';
+        } else if (menuRect.right > window.innerWidth - 12) {
+          targetMenu.style.right = '0';
+          targetMenu.style.left = 'auto';
+        }
+      } else {
+        targetMenu.classList.add('show');
+      }
+
+      if (targetBtn) targetBtn.classList.add('active');
+      if (card) card.classList.add('menu-open');
+    }
+  };
+
+  // Đóng dropdown khi click bất kỳ đâu bên ngoài
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.acc-action-dropdown-wrap')) {
+      document.querySelectorAll('.acc-dropdown-menu.show').forEach(el => {
+        el.classList.remove('show');
+        el.classList.remove('dropup');
+        el.style.left = '';
+        el.style.right = '';
+      });
+      document.querySelectorAll('.acc-btn-options.active').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.querySelectorAll('.account-card.menu-open').forEach(el => {
+        el.classList.remove('menu-open');
+      });
+    }
+  });
+
+  // 1. Đăng xuất thiết bị (Chỉ hủy phiên & dọn sạch cache trên thiết bị này, bot vẫn giữ chuỗi nếu đã bật)
+  window.handleDeviceLogout = async function (uid) {
     const acc = accounts.find(a => a.uid === uid);
     if (!acc) return;
-    if (!confirm(`Bạn có chắc muốn đăng xuất tài khoản "${acc.displayName || acc.email}" khỏi thiết bị này không?`)) return;
+
+    // Đóng dropdown menu
+    document.querySelectorAll('.acc-dropdown-menu.show').forEach(el => {
+      el.classList.remove('show');
+      el.classList.remove('dropup');
+    });
+    document.querySelectorAll('.acc-btn-options.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.account-card.menu-open').forEach(el => el.classList.remove('menu-open'));
+
+    const accName = acc.displayName || acc.email;
+    const confirmMsg = `Đăng xuất "${accName}" khỏi thiết bị này?\n(Bot vẫn giữ chuỗi)`;
+    if (!confirm(confirmMsg)) return;
+
+    // Bật hiệu ứng loading trên thẻ ngay lập tức để đợi API
+    setCardProcessing(uid, true, 'Đang đăng xuất khỏi thiết bị...');
 
     try {
-      await fetch('/api/logout', {
+      const secret = acc.sessionSecret || getSessionSecret(uid);
+      const res = await fetch('/api/logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid, sessionSecret: acc.sessionSecret })
+        body: JSON.stringify({ uid, sessionSecret: secret })
       });
-    } catch (err) {
-      console.warn('[Logout] Lỗi gọi API logout:', err.message);
-    }
+      const data = await res.json();
 
-    accounts = accounts.filter(a => a.uid !== uid);
-    saveAccounts();
-    renderAccounts();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Lỗi khi đăng xuất khỏi thiết bị.');
+      }
+
+      // API THÀNH CÔNG -> MỚI XÓA SẠCH TRONG CACHE & TRÊN GIAO DIỆN
+      clearAccountCache(uid);
+      accounts = accounts.filter(a => a.uid !== uid);
+      saveAccounts();
+      renderAccounts();
+
+    } catch (err) {
+      console.error('[Device Logout] Lỗi:', err.message);
+      setCardProcessing(uid, false);
+      alert(`Không thể đăng xuất: ${err.message}`);
+    }
   };
+
+  // 2. Xóa khỏi hệ thống (Xóa vĩnh viễn trên máy chủ Firestore và dừng việc giữ chuỗi)
+  window.handleDeleteAccount = async function (uid) {
+    const acc = accounts.find(a => a.uid === uid);
+    if (!acc) return;
+
+    // Đóng dropdown menu
+    document.querySelectorAll('.acc-dropdown-menu.show').forEach(el => {
+      el.classList.remove('show');
+      el.classList.remove('dropup');
+    });
+    document.querySelectorAll('.acc-btn-options.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.account-card.menu-open').forEach(el => el.classList.remove('menu-open'));
+
+    const accName = acc.displayName || acc.email;
+    const confirmMsg = `Xóa vĩnh viễn "${accName}" khỏi hệ thống và hủy auto?`;
+    if (!confirm(confirmMsg)) return;
+
+    // Bật hiệu ứng loading trên thẻ ngay lập tức để đợi API
+    setCardProcessing(uid, true, 'Đang xóa dữ liệu trên hệ thống...');
+
+    try {
+      const secret = acc.sessionSecret || getSessionSecret(uid);
+      const res = await fetch('/api/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, sessionSecret: secret })
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Lỗi khi xóa dữ liệu tài khoản khỏi hệ thống.');
+      }
+
+      // API THÀNH CÔNG -> MỚI XÓA SẠCH TRONG CACHE & TRÊN GIAO DIỆN
+      clearAccountCache(uid);
+      accounts = accounts.filter(a => a.uid !== uid);
+      saveAccounts();
+      renderAccounts();
+
+    } catch (err) {
+      console.error('[Delete Account] Lỗi:', err.message);
+      setCardProcessing(uid, false);
+      alert(`Không thể xóa tài khoản: ${err.message}`);
+    }
+  };
+
+  // Backward-compatibility alias
+  window.deleteAccount = window.handleDeviceLogout;
 
   // Lấy dữ liệu chuỗi thời gian thực cho 1 tài khoản từ /api/streak
   async function fetchAccountStreak(uid) {
@@ -578,7 +914,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         resData.data.forEach(freshAcc => {
           const idx = accounts.findIndex(a => a.uid === freshAcc.uid);
           if (idx >= 0) {
-            accounts[idx] = { ...accounts[idx], ...freshAcc };
+            const secret = accounts[idx].sessionSecret || getSessionSecret(freshAcc.uid);
+            accounts[idx] = { ...accounts[idx], ...freshAcc, sessionSecret: secret };
             hasChanges = true;
           }
         });
@@ -637,32 +974,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderAccounts();
   });
 
-  // Run All (Chạy duy trì cho tất cả tài khoản với Jitter tự nhiên)
+  // Run All (Chỉ quét các tài khoản CHƯA có chuỗi hôm nay & còn phiên hợp lệ)
   btnRunAll?.addEventListener('click', async () => {
     if (accounts.length === 0) return alert('Chưa có tài khoản nào.');
     if (btnRunAll.disabled) return;
+
+    const validAccounts = accounts.filter(a => !a.isSessionExpired);
+    if (validAccounts.length === 0) {
+      return alert('Tất cả tài khoản đều đã hết hạn phiên làm việc. Vui lòng bấm "Đăng nhập lại" để tiếp tục.');
+    }
+
+    // Tự động bỏ qua các tài khoản đã duy trì chuỗi hôm nay
+    const pendingAccounts = validAccounts.filter(a => !a.isMaintainedToday);
+    if (pendingAccounts.length === 0) {
+      return alert('Tuyệt vời! Tất cả tài khoản hợp lệ đều đã hoàn thành chuỗi hôm nay rồi 🎉');
+    }
 
     btnRunAll.disabled = true;
     const runLabel = document.getElementById('btn-run-all-label');
     const originalLabel = runLabel ? runLabel.textContent : 'Chạy tất cả';
 
-    try {
-      for (let i = 0; i < accounts.length; i++) {
-        const acc = accounts[i];
-        if (runLabel) runLabel.textContent = `Đang chạy (${i + 1}/${accounts.length})...`;
-        await window.runManual(acc.uid);
+    let successCount = 0;
+    let cooldownSkipped = 0;
 
-        // Nghỉ ngẫu nhiên 1.0s - 2.0s giữa các tài khoản để tránh dội bom Locket
-        if (i < accounts.length - 1) {
-          const jitter = Math.floor(Math.random() * 1000) + 1000;
+    try {
+      for (let i = 0; i < pendingAccounts.length; i++) {
+        const acc = pendingAccounts[i];
+        if (runLabel) runLabel.textContent = `Đang chạy (${i + 1}/${pendingAccounts.length})...`;
+        const res = await window.runManual(acc.uid, null, true);
+
+        if (res && res.success) {
+          successCount++;
+        } else if (res && res.cooldown) {
+          cooldownSkipped++;
+        }
+
+        // Nghỉ ngẫu nhiên 0.8s - 1.5s giữa các tài khoản để Locket xử lý an toàn
+        if (i < pendingAccounts.length - 1) {
+          const jitter = Math.floor(Math.random() * 700) + 800;
           await new Promise(r => setTimeout(r, jitter));
         }
       }
-      if (runLabel) runLabel.textContent = 'Đã hoàn tất!';
+
+      let finishLabel = `Đã hoàn tất (${successCount}/${pendingAccounts.length})!`;
+      if (cooldownSkipped > 0) {
+        finishLabel = `Xong: ${successCount} nick (${cooldownSkipped} nick đang chờ cooldown)`;
+      }
+      if (runLabel) runLabel.textContent = finishLabel;
+
       setTimeout(() => {
         if (runLabel) runLabel.textContent = originalLabel;
         btnRunAll.disabled = false;
-      }, 1800);
+      }, 2200);
     } catch (_) {
       if (runLabel) runLabel.textContent = originalLabel;
       btnRunAll.disabled = false;
@@ -1413,7 +1776,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     let streakStatusBadge = '';
     let distanceText = 'Chưa rõ';
 
-    if (diffDays === 0 || isUpdatedToday) {
+    const isExpired = Boolean(acc.isSessionExpired || streak.isSessionExpired || stats.lastStreakStatus === 'token_expired');
+
+    if (isExpired) {
+      streakStatusBadge = '<span class="detail-badge badge-danger">Phiên đã hết hạn</span>';
+      distanceText = 'Hết hạn (Cần đăng nhập lại)';
+    } else if (diffDays === 0 || isUpdatedToday) {
       streakStatusBadge = '<span class="detail-badge badge-success">Đã duy trì hôm nay</span>';
       distanceText = 'Hôm nay (Đã duy trì)';
     } else if (diffDays === 1) {
@@ -1439,12 +1807,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     let lastRunBadge = '<span class="detail-badge badge-neutral">Chưa có lượt chạy</span>';
-    if (stats.lastStreakStatus === 'success') {
+    if (isExpired) {
+      lastRunBadge = '<span class="detail-badge badge-danger">Hết hạn token</span>';
+    } else if (stats.lastStreakStatus === 'success') {
       lastRunBadge = '<span class="detail-badge badge-success">Thành công</span>';
     } else if (stats.lastStreakStatus === 'already_updated' || stats.lastStreakStatus === 'skipped') {
       lastRunBadge = '<span class="detail-badge badge-success">Đã có chuỗi</span>';
     } else if (stats.lastStreakStatus === 'error') {
       lastRunBadge = '<span class="detail-badge badge-danger">Thất bại</span>';
+    } else if (isUpdatedToday || stats.isMaintainedToday || (lastDate && lastDate >= todayYMD)) {
+      lastRunBadge = '<span class="detail-badge badge-success">Đã có chuỗi</span>';
+    } else if (stats.lastStreakRunAt || acc.lastStreakRunAt) {
+      lastRunBadge = '<span class="detail-badge badge-success">Đã có chuỗi</span>';
     }
 
     detailModalBody.innerHTML = `

@@ -1,9 +1,10 @@
 import { db } from '../lib/db.js';
 
 /**
- * API Đăng Xuất & Xóa Phiên Tài Khoản
+ * API Đăng Xuất Tài Khoản Khỏi Thiết Bị
  * Method: POST /api/logout
- * Body: { uid: string }
+ * Body: { uid: string, sessionSecret?: string }
+ * Mục đích: Hủy phiên đăng nhập trên thiết bị hiện tại, không xóa dữ liệu trên hệ thống (bot vẫn có thể giữ chuỗi nếu bật tự động).
  */
 export default async function logoutHandler(req, res) {
   if (req.method !== 'POST') {
@@ -14,29 +15,26 @@ export default async function logoutHandler(req, res) {
   const headerSecret = req.headers['x-session-secret'];
   const provided = sessionSecret || headerSecret;
 
+  const cleanUid = typeof uid === 'string' ? uid.trim() : '';
+
   try {
-    // 1. Kiểm tra quyền sở hữu tài khoản qua sessionSecret
-    if (uid && db) {
-      const userRef = db.collection('users').doc(uid);
+    if (cleanUid && db) {
+      const userRef = db.collection('users').doc(cleanUid);
       const userDoc = await userRef.get();
 
       if (userDoc.exists) {
-        const uData = userDoc.data() || {};
-        // Nếu tài khoản có sessionSecret trong DB thì bắt buộc phải khớp
-        if (uData.sessionSecret && provided !== uData.sessionSecret) {
-          return res.status(403).json({
-            success: false,
-            message: 'Quyền truy cập bị từ chối. Phiên làm việc không hợp lệ.'
-          });
-        }
-        await userRef.delete();
-        console.log(`[Logout] Đã xóa tài khoản ${uid.slice(0, 8)}... khỏi Firestore.`);
+        // Cập nhật mốc thời gian đăng xuất thiết bị
+        await userRef.update({
+          lastLogoutAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }).catch(() => {});
+        console.log(`[Logout] Đã ghi nhận đăng xuất thiết bị cho tài khoản ${cleanUid.slice(0, 8)}...`);
       }
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Đăng xuất và hủy phiên tài khoản thành công.'
+      message: 'Đã đăng xuất tài khoản khỏi thiết bị thành công.'
     });
 
   } catch (error) {

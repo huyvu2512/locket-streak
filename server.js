@@ -15,6 +15,7 @@ import logoutHandler from './api/logout.js';
 import accountsHandler from './api/accounts.js';
 import pushHandler from './api/push.js';
 import statsHandler from './api/stats.js';
+import deleteHandler from './api/delete.js';
 
 dotenv.config();
 
@@ -126,6 +127,7 @@ app.all('/api/logout', logoutHandler);
 app.all('/api/accounts', accountsHandler);
 app.all('/api/push', pushHandler);
 app.all('/api/stats', statsHandler);
+app.all('/api/delete', deleteHandler);
 
 // Khởi chạy server
 app.listen(PORT, () => {

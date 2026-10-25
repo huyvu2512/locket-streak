@@ -1,10 +1,10 @@
 import { db } from '../lib/db.js';
-import { getValidToken, getVietnamTodayNumber, getRandomLocketHeaders, getRandomDelay, LOCKET_API_URL } from './verify.js';
+import { getValidToken, verifyAndCleanSession, getVietnamTodayNumber, getRandomLocketHeaders, getRandomDelay, LOCKET_API_URL } from './verify.js';
 
 /**
  * API Lấy Danh Sách & Đồng Bộ Hàng Loạt Tài Khoản (Batch Accounts API)
  * Tối ưu hóa: Hạn chế tối đa fetchUserV2 (chỉ fetch 1 lần khi DB chưa có để tránh rate limit của Locket)
- * Các tác vụ syncLive chỉ gọi getLatestMomentV2 (Streak API).
+ * Xác thực phiên token: Nếu tài khoản bị mất phiên / thu hồi token, tự động xóa token khỏi DB và đánh dấu isSessionExpired
  * Method: POST hoặc GET /api/accounts
  */
 export default async function accountsHandler(req, res) {
@@ -51,8 +51,9 @@ export default async function accountsHandler(req, res) {
       });
     }
 
-    // 2. Chế độ đọc nhanh từ Firestore (syncLive = false): cực nhanh (< 150ms)
-    // Tận dụng dữ liệu displayName, username, avatarUrl đã lưu trong DB, KHÔNG gọi fetchUserV2
+    // 2. Chế độ đọc nhanh từ Firestore (syncLive = false):
+    // Tận dụng dữ liệu displayName, username, avatarUrl đã lưu trong DB
+    // Tự động kiểm tra tính hợp lệ của token và dọn sạch token nếu đã hết hạn
     if (!syncLive) {
       const data = await Promise.all(targetDocs.map(async (doc) => {
         const u = doc.data() || {};
@@ -60,10 +61,14 @@ export default async function accountsHandler(req, res) {
         let username = u.username || null;
         let avatarUrl = u.avatarUrl || null;
 
-        // Chỉ gọi fetchUserV2 duy nhất 1 lần khi tài khoản trong DB chưa từng có profile
-        if (!u.username && !u.avatarUrl && !u.displayName) {
+        // Xác thực phiên token thực tế với Google
+        const sessionCheck = await verifyAndCleanSession(doc.id, u, doc.ref);
+        const isSessionExpired = Boolean(sessionCheck.isSessionExpired);
+
+        // Chỉ gọi fetchUserV2 duy nhất 1 lần khi tài khoản trong DB chưa từng có profile và phiên còn sống
+        if (!isSessionExpired && !u.username && !u.avatarUrl && !u.displayName) {
           try {
-            const { idToken } = await getValidToken(doc.id);
+            const idToken = sessionCheck.idToken || (await getValidToken(doc.id)).idToken;
             const headers = getRandomLocketHeaders(idToken);
             const uRes = await fetch(`${LOCKET_API_URL}/fetchUserV2`, {
               method: 'POST',
@@ -90,7 +95,7 @@ export default async function accountsHandler(req, res) {
 
         const rawLast = Number(u.lastStreakDate) || 0;
         const streakCount = Number(u.streakCount) || 0;
-        const isMaintainedToday = Boolean(u.isMaintainedToday || (rawLast && rawLast >= today));
+        const isMaintainedToday = Boolean(!isSessionExpired && (u.isMaintainedToday || (rawLast && rawLast >= today)));
 
         return {
           uid: doc.id,
@@ -101,11 +106,13 @@ export default async function accountsHandler(req, res) {
           streakCount,
           lastStreakDate: rawLast,
           isMaintainedToday,
-          autoStreak: Boolean(u.autoStreak),
+          autoStreak: isSessionExpired ? false : Boolean(u.autoStreak),
+          isSessionExpired,
           telegramId: u.telegramId || null,
           discordId: u.discordId || null,
           lastStreakRunAt: u.lastStreakRunAt || null,
-          lastStreakStatus: u.lastStreakStatus || null,
+          streakAchievedAt: u.streakAchievedAt || (isMaintainedToday ? (u.lastStreakRunAt || null) : null),
+          lastStreakStatus: isSessionExpired ? 'token_expired' : (u.lastStreakStatus || (isMaintainedToday ? 'already_updated' : null)),
           lastStreakNotifiedDate: Number(u.lastStreakNotifiedDate) || 0
         };
       }));
@@ -136,7 +143,29 @@ export default async function accountsHandler(req, res) {
         const avatarUrl = userData.avatarUrl || null;
 
         try {
-          const { idToken } = await getValidToken(uid);
+          const sessionCheck = await verifyAndCleanSession(uid, userData, doc.ref);
+          if (sessionCheck.isSessionExpired) {
+            return {
+              uid,
+              email: userData.email || null,
+              displayName,
+              username,
+              avatarUrl,
+              streakCount: Number(userData.streakCount) || 0,
+              lastStreakDate: Number(userData.lastStreakDate) || 0,
+              isMaintainedToday: false,
+              autoStreak: false,
+              isSessionExpired: true,
+              telegramId: userData.telegramId || null,
+              discordId: userData.discordId || null,
+              lastStreakRunAt: userData.lastStreakRunAt || null,
+              lastStreakStatus: 'token_expired',
+              lastStreakNotifiedDate: Number(userData.lastStreakNotifiedDate) || 0,
+              syncError: 'Phiên đăng nhập đã hết hạn.'
+            };
+          }
+
+          const idToken = sessionCheck.idToken || (await getValidToken(uid)).idToken;
           const headers = getRandomLocketHeaders(idToken);
 
           // Chỉ gọi Streak API (không gọi fetchUserV2)
@@ -168,7 +197,8 @@ export default async function accountsHandler(req, res) {
           const updatePayload = {
             streakCount,
             lastStreakDate: rawLastUpdated,
-            isMaintainedToday
+            isMaintainedToday,
+            isSessionExpired: false
           };
           await db.collection('users').doc(uid).set(updatePayload, { merge: true }).catch(() => {});
 
@@ -182,14 +212,17 @@ export default async function accountsHandler(req, res) {
             lastStreakDate: rawLastUpdated,
             isMaintainedToday,
             autoStreak: Boolean(userData.autoStreak),
+            isSessionExpired: false,
             telegramId: userData.telegramId || null,
             discordId: userData.discordId || null,
             lastStreakRunAt: userData.lastStreakRunAt || null,
-            lastStreakStatus: userData.lastStreakStatus || null,
+            streakAchievedAt: userData.streakAchievedAt || (isMaintainedToday ? (userData.lastStreakRunAt || null) : null),
+            lastStreakStatus: userData.lastStreakStatus || (isMaintainedToday ? 'already_updated' : null),
             lastStreakNotifiedDate: Number(userData.lastStreakNotifiedDate) || 0
           };
         } catch (err) {
           console.warn(`[BatchAccounts] Lỗi quét chuỗi nick ${uid}:`, err.message);
+          const isExpired = err.message.includes('hết hạn') || err.message.includes('đăng xuất') || !userData.refreshToken;
           return {
             uid,
             email: userData.email || null,
@@ -198,12 +231,13 @@ export default async function accountsHandler(req, res) {
             avatarUrl,
             streakCount: Number(userData.streakCount) || 0,
             lastStreakDate: Number(userData.lastStreakDate) || 0,
-            isMaintainedToday: Number(userData.lastStreakDate) >= today,
-            autoStreak: Boolean(userData.autoStreak),
+            isMaintainedToday: false,
+            autoStreak: false,
+            isSessionExpired: isExpired,
             telegramId: userData.telegramId || null,
             discordId: userData.discordId || null,
             lastStreakRunAt: userData.lastStreakRunAt || null,
-            lastStreakStatus: userData.lastStreakStatus || null,
+            lastStreakStatus: isExpired ? 'token_expired' : (userData.lastStreakStatus || null),
             lastStreakNotifiedDate: Number(userData.lastStreakNotifiedDate) || 0,
             syncError: err.message
           };

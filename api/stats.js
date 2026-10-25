@@ -34,6 +34,7 @@ export default async function statsHandler(req, res) {
     const users = [];
     snapshot.forEach(doc => {
       const data = doc.data() || {};
+      const isMaintained = Boolean(data.isMaintainedToday || (data.lastStreakDate && data.lastStreakDate >= todayYMD));
       users.push({
         displayName: data.displayName || data.username || 'Người dùng Locket',
         username: data.username || null,
@@ -41,9 +42,10 @@ export default async function statsHandler(req, res) {
         streakCount: Number(data.streakCount) || 0,
         lastStreakDate: Number(data.lastStreakDate) || 0,
         lastStreakRunAt: data.lastStreakRunAt || null,
+        streakAchievedAt: data.streakAchievedAt || (isMaintained ? data.lastStreakRunAt : null),
         autoStreak: Boolean(data.autoStreak),
         firstLoginAt: data.firstLoginAt || null,
-        isMaintainedToday: Boolean(data.isMaintainedToday || (data.lastStreakDate && data.lastStreakDate >= todayYMD))
+        isMaintainedToday: isMaintained
       });
     });
 
@@ -98,11 +100,13 @@ export default async function statsHandler(req, res) {
       }
     };
 
-    // Nhật ký hoạt động gần đây (Live Activity Logs - 15 mục mới nhất)
-    const recentLogs = users
-      .filter(u => u.lastStreakRunAt || u.firstLoginAt)
+    // 1. Nhật ký duy trì chuỗi gần đây (Ưu tiên hiển thị mốc hoàn thành chuỗi streakAchievedAt)
+    const streakLogs = users
+      .filter(u => u.streakAchievedAt || u.lastStreakRunAt)
       .sort((a, b) => {
-        return parseTime(b.lastStreakRunAt || b.firstLoginAt) - parseTime(a.lastStreakRunAt || a.firstLoginAt);
+        const timeB = b.streakAchievedAt || b.lastStreakRunAt;
+        const timeA = a.streakAchievedAt || a.lastStreakRunAt;
+        return parseTime(timeB) - parseTime(timeA);
       })
       .slice(0, 15)
       .map(u => ({
@@ -110,8 +114,21 @@ export default async function statsHandler(req, res) {
         username: u.username ? `@${String(u.username).replace(/^@+/, '')}` : null,
         avatarUrl: u.avatarUrl || null,
         streakCount: Number(u.streakCount) || 0,
-        runAt: u.lastStreakRunAt || u.firstLoginAt || null,
-        action: u.lastStreakRunAt ? 'streak_run' : 'registered'
+        runAt: u.streakAchievedAt || u.lastStreakRunAt,
+        action: 'streak_run'
+      }));
+
+    // 2. Nhật ký người dùng mới tham gia (Sắp xếp theo firstLoginAt mới nhất)
+    const newMemberLogs = users
+      .filter(u => u.firstLoginAt)
+      .sort((a, b) => parseTime(b.firstLoginAt) - parseTime(a.firstLoginAt))
+      .slice(0, 15)
+      .map(u => ({
+        displayName: u.displayName || 'Người dùng Locket',
+        username: u.username ? `@${String(u.username).replace(/^@+/, '')}` : null,
+        avatarUrl: u.avatarUrl || null,
+        joinedAt: u.firstLoginAt,
+        action: 'registered'
       }));
 
     const result = {
@@ -125,7 +142,9 @@ export default async function statsHandler(req, res) {
         autoStreakCount
       },
       topStreaks,
-      recentLogs,
+      recentLogs: streakLogs, // Bảo toàn tương thích ngược
+      streakLogs,
+      newMemberLogs,
       serverTime: getVietnamTime()
     };
 

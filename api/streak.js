@@ -104,7 +104,8 @@ export default async function streakHandler(req, res) {
         },
         stats: {
           lastStreakRunAt: userData.lastStreakRunAt || userData.lastRunAt || null,
-          lastStreakStatus: userData.lastStreakStatus || userData.lastRunStatus || null,
+          lastStreakStatus: userData.lastStreakStatus || (isMaintainedToday ? 'already_updated' : (userData.lastRunStatus || null)),
+          streakAchievedAt: userData.streakAchievedAt || (isMaintainedToday ? (userData.lastStreakRunAt || null) : null),
           lastLoginAt: userData.lastLoginAt || null,
           firstLoginAt: userData.firstLoginAt || null,
           createdAt: userData.createdAt || null,
@@ -117,11 +118,13 @@ export default async function streakHandler(req, res) {
     });
 
   } catch (error) {
+    const isExpired = error.message.includes('hết hạn') || error.message.includes('đăng xuất');
     const status = error.message.includes('không tồn tại') ? 404 :
                    error.message.includes('gián đoạn') ? 503 :
-                   error.message.includes('hết hạn') ? 401 : 400;
+                   isExpired ? 401 : 400;
     return res.status(status).json({
       success: false,
+      isSessionExpired: isExpired,
       message: error.message || 'Không thể lấy thông tin chuỗi.'
     });
   }

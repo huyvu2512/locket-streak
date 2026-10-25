@@ -681,6 +681,13 @@ body {
   gap: 18px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.account-card.menu-open,
+.account-card:has(.acc-dropdown-menu.show) {
+  z-index: 50 !important;
 }
 
 .account-card:hover {
@@ -1078,7 +1085,217 @@ body {
   }
 }
 
-/* 3. Đăng xuất */
+/* 3. Tùy chọn (Dropdown Menu Options) */
+.acc-action-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+  z-index: 60;
+}
+
+.acc-btn-options {
+  background-color: #FFFFFF;
+  color: #374151;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.acc-btn-options:hover,
+.acc-btn-options.active {
+  background-color: #F3F4F6;
+  color: #000000;
+  border-color: rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.acc-chevron-icon {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.5;
+  transition: transform 0.2s ease;
+  margin-left: -2px;
+}
+
+.acc-btn-options.active .acc-chevron-icon {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu Popup */
+.acc-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  width: max-content;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.18), 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  display: none;
+  animation: dropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.acc-dropdown-menu.dropup {
+  top: auto;
+  bottom: calc(100% + 8px);
+  animation: dropupFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.acc-dropdown-menu.show {
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes dropupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+}
+
+.menu-item:hover {
+  background-color: #F9FAFB;
+}
+
+.menu-item-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.menu-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.menu-item-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B7280;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Item 1: Đăng xuất thiết bị */
+.menu-item-logout {
+  color: #374151;
+}
+
+.menu-item-logout:hover {
+  background-color: #F3F4F6;
+  color: #111827;
+}
+
+.menu-item-logout .menu-item-icon {
+  color: #4B5563;
+}
+
+/* Item 2: Xóa khỏi hệ thống */
+.menu-item-danger {
+  color: #DC2626;
+}
+
+.menu-item-danger:hover {
+  background-color: #FEF2F2;
+  color: #B91C1C;
+}
+
+.menu-item-danger .menu-item-icon {
+  color: #DC2626;
+}
+
+.menu-item-danger .menu-item-sub {
+  color: #EF4444;
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.07);
+  margin: 4px 6px;
+}
+
+/* Overlay Loading trên thẻ khi đang gọi API Đăng xuất hoặc Xóa */
+.card-processing-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 50;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.card-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3.5px solid rgba(0, 0, 0, 0.08);
+  border-top-color: #000000;
+  border-radius: 50%;
+  animation: cardSpin 0.7s linear infinite;
+}
+
+@keyframes cardSpin {
+  to { transform: rotate(360deg); }
+}
+
+.processing-text {
+  font-size: 13.5px;
+  font-weight: 750;
+  color: #111827;
+}
+
+/* Backward-compatibility nút xóa cũ */
 .acc-btn-delete {
   background-color: #FFFFFF;
   color: #DC2626;
@@ -1108,6 +1325,48 @@ body {
   border-color: rgba(0, 0, 0, 0.18);
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 5. Đăng nhập lại (khi phiên hết hạn) */
+.acc-btn-relogin {
+  background-color: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.06);
+}
+
+.acc-btn-relogin:hover {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+  border-color: rgba(220, 38, 38, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.15);
+}
+
+/* Badge Hết phiên */
+.session-badge-expired {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 750;
+  color: #DC2626;
+  background-color: #FEE2E2;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.switch-sub-error {
+  color: #DC2626 !important;
+  font-weight: 700 !important;
+}
+
+.account-card.is-expired {
+  border-color: rgba(220, 38, 38, 0.22);
+  background-color: #FFFDFD;
 }
 
 /* Toggle Switch */
@@ -2148,7 +2407,8 @@ input:disabled+.slider {
   }
 
   /* Harmonious Button Order */
-  .acc-actions-row .acc-btn-run {
+  .acc-actions-row .acc-btn-run,
+  .acc-actions-row .acc-btn-relogin {
     order: 1;
   }
 
@@ -2160,8 +2420,24 @@ input:disabled+.slider {
     order: 3;
   }
 
+  .acc-actions-row .acc-action-dropdown-wrap,
   .acc-actions-row .acc-btn-delete {
     order: 4;
+    width: 100%;
+  }
+
+  .acc-actions-row .acc-action-dropdown-wrap .acc-btn-options {
+    width: 100%;
+    height: 36px;
+    padding: 0 8px;
+    font-size: 12.5px;
+    font-weight: 750;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Modals on Mobile: Perfectly centered & responsive to virtual keyboard */

@@ -51,9 +51,11 @@ export default async function cronHandler(req, res) {
 
     const allDocs = snapshot.docs;
 
-    // Lọc danh sách nick cần chạy: CHỈ chạy các tài khoản đã BẬT tự động giữ chuỗi (autoStreak === true)
-    // Mặc định tài khoản chưa bật auto sẽ được bỏ qua
-    const targetDocs = allDocs.filter(d => Boolean(d.data()?.autoStreak));
+    // Lọc danh sách nick cần chạy: CHỈ chạy các tài khoản đã BẬT tự động giữ chuỗi (autoStreak === true) VÀ còn phiên làm việc hợp lệ
+    const targetDocs = allDocs.filter(d => {
+      const data = d.data() || {};
+      return Boolean(data.autoStreak) && !data.isSessionExpired && Boolean(data.refreshToken);
+    });
 
     if (targetDocs.length === 0) {
       return res.status(200).json({

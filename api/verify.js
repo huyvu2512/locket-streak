@@ -257,6 +257,9 @@ export default async function verifyHandler(req, res) {
         firstLoginAt = existingData.firstLoginAt || now;
         sessionSecret = existingData.sessionSecret || sessionSecret;
 
+        const savedStatus = existingData.lastStreakStatus || (isMaintainedToday ? 'already_updated' : null);
+        const streakAchievedAt = existingData.streakAchievedAt || (isMaintainedToday ? (existingData.lastStreakRunAt || now) : null);
+
         // Lưu thông tin người dùng và cấu hình vĩnh viễn vào Firestore
         await userRef.set({
           uid: userUid,
@@ -268,6 +271,9 @@ export default async function verifyHandler(req, res) {
           lastStreakDate,
           refreshToken: loginResult.refreshToken,
           idToken: loginResult.idToken,
+          isSessionExpired: false,
+          lastStreakStatus: savedStatus,
+          streakAchievedAt,
           sessionSecret,
           firstLoginAt,
           lastLoginAt: now,
@@ -344,6 +350,7 @@ export default async function verifyHandler(req, res) {
 
 /**
  * Lấy idToken hợp lệ (tự động làm mới nếu >= 55 phút)
+ * Nếu refreshToken hết hạn / bị thu hồi: Tự động xóa token khỏi DB và đánh dấu isSessionExpired = true
  */
 export async function getValidToken(uid) {
   if (!db) {
@@ -354,11 +361,25 @@ export async function getValidToken(uid) {
   const userDoc = await userRef.get();
 
   if (!userDoc.exists) {
-    throw new Error('Tài khoản không tồn tại hoặc phiên xác thực đã hết hạn.');
+    throw new Error('Tài khoản không tồn tại trên hệ thống.');
   }
 
-  const userData = userDoc.data();
+  const userData = userDoc.data() || {};
   const { refreshToken, idToken, lastLoginAt } = userData;
+
+  // Nếu tài khoản không có refreshToken hoặc đã bị đánh dấu hết hạn phiên
+  if (!refreshToken || userData.isSessionExpired) {
+    if (userData.refreshToken || userData.idToken || userData.autoStreak) {
+      await userRef.set({
+        idToken: null,
+        refreshToken: null,
+        isSessionExpired: true,
+        autoStreak: false,
+        lastStreakStatus: 'token_expired'
+      }, { merge: true }).catch(() => {});
+    }
+    throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại tài khoản này.');
+  }
 
   const lastLoginMs = parseVietnamTimeToMs(lastLoginAt);
   const isUnder55Min = idToken && (Date.now() - lastLoginMs < 55 * 60 * 1000);
@@ -367,28 +388,101 @@ export async function getValidToken(uid) {
     return { idToken, userData, userRef, refreshed: false };
   }
 
-  if (!refreshToken) {
-    throw new Error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
+  try {
+    const refreshResult = await refreshIdToken(refreshToken);
+    const now = getVietnamTime();
+
+    const updateData = {
+      idToken: refreshResult.idToken,
+      lastLoginAt: now,
+      isSessionExpired: false
+    };
+
+    if (refreshResult.refreshToken && refreshResult.refreshToken !== refreshToken) {
+      updateData.refreshToken = refreshResult.refreshToken;
+    }
+
+    await userRef.set(updateData, { merge: true });
+
+    return {
+      idToken: refreshResult.idToken,
+      userData: { ...userData, ...updateData },
+      userRef,
+      refreshed: true
+    };
+  } catch (refreshErr) {
+    console.warn(`[Token] Phiên tài khoản ${uid} đã bị Google/Locket thu hồi:`, refreshErr.message);
+    // XÓA NGAY LẬP TỨC idToken và refreshToken khỏi DB khi bị mất phiên!
+    await userRef.set({
+      idToken: null,
+      refreshToken: null,
+      isSessionExpired: true,
+      autoStreak: false,
+      lastStreakStatus: 'token_expired',
+      tokenExpiredAt: getVietnamTime()
+    }, { merge: true }).catch(() => {});
+
+    throw new Error('Phiên đăng nhập đã hết hạn hoặc tài khoản đã đăng xuất. Vui lòng đăng nhập lại.');
+  }
+}
+
+/**
+ * Kiểm tra và làm mới token cho tài khoản (dùng trong danh sách accounts)
+ * Nếu token đã hết hạn hoặc bị thu hồi: Tự động xóa idToken, refreshToken khỏi DB,
+ * tắt autoStreak và trả về { isValid: false, isSessionExpired: true }
+ */
+export async function verifyAndCleanSession(uid, userData, userRef = null) {
+  const ref = userRef || (db ? db.collection('users').doc(uid) : null);
+  const refreshToken = userData.refreshToken;
+  const idToken = userData.idToken;
+  const lastLoginAt = userData.lastLoginAt;
+
+  if (!refreshToken || userData.isSessionExpired) {
+    if (ref && (userData.idToken || userData.refreshToken || userData.autoStreak)) {
+      await ref.set({
+        idToken: null,
+        refreshToken: null,
+        isSessionExpired: true,
+        autoStreak: false,
+        lastStreakStatus: 'token_expired'
+      }, { merge: true }).catch(() => {});
+    }
+    return { isValid: false, isSessionExpired: true };
   }
 
-  const refreshResult = await refreshIdToken(refreshToken);
-  const now = getVietnamTime();
-
-  const updateData = {
-    idToken: refreshResult.idToken,
-    lastLoginAt: now
-  };
-
-  if (refreshResult.refreshToken && refreshResult.refreshToken !== refreshToken) {
-    updateData.refreshToken = refreshResult.refreshToken;
+  const lastLoginMs = parseVietnamTimeToMs(lastLoginAt);
+  const isUnder55Min = idToken && (Date.now() - lastLoginMs < 55 * 60 * 1000);
+  if (isUnder55Min) {
+    return { isValid: true, isSessionExpired: false, idToken };
   }
 
-  await userRef.set(updateData, { merge: true });
-
-  return {
-    idToken: refreshResult.idToken,
-    userData: { ...userData, ...updateData },
-    userRef,
-    refreshed: true
-  };
+  try {
+    const refreshResult = await refreshIdToken(refreshToken);
+    const now = getVietnamTime();
+    const updateData = {
+      idToken: refreshResult.idToken,
+      lastLoginAt: now,
+      isSessionExpired: false
+    };
+    if (refreshResult.refreshToken && refreshResult.refreshToken !== refreshToken) {
+      updateData.refreshToken = refreshResult.refreshToken;
+    }
+    if (ref) {
+      await ref.set(updateData, { merge: true }).catch(() => {});
+    }
+    return { isValid: true, isSessionExpired: false, idToken: refreshResult.idToken };
+  } catch (err) {
+    console.warn(`[SessionCheck] Phiên của nick ${uid} không hợp lệ, đang xóa token khỏi DB:`, err.message);
+    if (ref) {
+      await ref.set({
+        idToken: null,
+        refreshToken: null,
+        isSessionExpired: true,
+        autoStreak: false,
+        lastStreakStatus: 'token_expired',
+        tokenExpiredAt: getVietnamTime()
+      }, { merge: true }).catch(() => {});
+    }
+    return { isValid: false, isSessionExpired: true };
+  }
 }

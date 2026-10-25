@@ -57,6 +57,14 @@ export default async function autoHandler(req, res) {
         newState = !current;
       }
 
+      if (newState === true && (uData.isSessionExpired || !uData.refreshToken)) {
+        return res.status(400).json({
+          success: false,
+          isSessionExpired: true,
+          message: 'Không thể bật tự động giữ chuỗi do phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại tài khoản này.'
+        });
+      }
+
       await userRef.update({
         autoStreak: newState
       });

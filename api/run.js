@@ -115,15 +115,15 @@ function getMissingDates(lastUpdatedYMD, todayYMD) {
   const todayUtc = Date.UTC(ty, tm, td);
 
   const diffDays = Math.round((todayUtc - lastUtc) / (86400 * 1000));
-  // Nếu khoảng cách > 3 ngày (tức đã mất từ 3 ngày trở lên, không tính hôm nay), Locket không thể khôi phục chuỗi
-  if (diffDays > 3) return [];
+  // Nếu khoảng cách > 6 ngày (tức đứt quá 5 ngày liên tiếp), dừng khôi phục để tránh spam quá nhiều moment
+  if (diffDays > 6) return [];
 
   let cur = new Date(lastUtc);
   cur.setUTCDate(cur.getUTCDate() + 1);
 
-  // Khôi phục tối đa 2 ngày gần nhất bị đứt (theo giới hạn khôi phục của Locket)
+  // Thử khôi phục tối đa lên đến 5 ngày gần nhất bị đứt (nếu Locket cho phép thì nối chuỗi, nếu không thì tạo chuỗi mới an toàn)
   let safety = 0;
-  while (safety < 2) {
+  while (safety < 5) {
     const curYMD = parseInt(
       `${cur.getUTCFullYear()}${String(cur.getUTCMonth() + 1).padStart(2, '0')}${String(cur.getUTCDate()).padStart(2, '0')}`,
       10
@@ -567,13 +567,18 @@ export async function executeStreakForUser(uid) {
         }
 
         if (db) {
-          await db.collection('users').doc(uid).set({
+          const updateData = {
             lastStreakRunAt: getVietnamTime(),
             lastStreakStatus: 'already_updated',
             streakCount: latestStreak,
             lastStreakDate: todayYMD,
             lastStreakNotifiedDate: todayYMD // Đánh dấu hôm nay đã thông báo (chỉ thông báo duy nhất 1 lần)
-          }, { merge: true });
+          };
+          // Cố định mốc streakAchievedAt không bị ghi đè nếu hôm nay đã có
+          if (!userData.streakAchievedAt || String(userData.lastStreakDate) !== String(todayYMD)) {
+            updateData.streakAchievedAt = userData.streakAchievedAt || getVietnamTime();
+          }
+          await db.collection('users').doc(uid).set(updateData, { merge: true });
         }
 
         return {
@@ -592,8 +597,10 @@ export async function executeStreakForUser(uid) {
 
     // 4. Cập nhật trạng thái thành công vào Firestore
     if (db) {
+      const nowVn = getVietnamTime();
       await db.collection('users').doc(uid).set({
-        lastStreakRunAt: getVietnamTime(),
+        lastStreakRunAt: nowVn,
+        streakAchievedAt: nowVn, // Mốc thời gian hoàn thành chuỗi mới
         lastStreakStatus: 'success',
         streakCount: latestStreak,
         lastStreakDate: todayYMD,
@@ -638,9 +645,9 @@ export async function executeStreakForUser(uid) {
 }
 
 
-// Bộ nhớ đệm giới hạn tần suất (Rate Limit): 1 UID tối đa 1 lần mỗi 30 giây
+// Bộ nhớ đệm giới hạn tần suất (Rate Limit): 1 UID tối đa 1 lần mỗi 12 giây
 const runCooldowns = new Map();
-const COOLDOWN_MS = 30 * 1000;
+const COOLDOWN_MS = 12 * 1000;
 
 /**
  * API Chạy Chuỗi Thủ Công
@@ -690,26 +697,35 @@ export default async function runHandler(req, res) {
   } catch (error) {
     console.error(`\x1b[31m  ✖ [Run Handler] Lỗi khi chạy cho ${cleanUid.slice(0, 8)}...:\x1b[0m`, error.message);
 
+    const isExpired = error.message.includes('hết hạn') || error.message.includes('đăng xuất') || error.message.includes('tồn tại');
+
     if (db) {
       try {
         const uRef = db.collection('users').doc(cleanUid);
         const uDoc = await uRef.get();
         // CHỈ cập nhật thông tin lỗi nếu tài khoản THỰC SỰ tồn tại trong Firestore
-        // Tuyệt đối KHÔNG tự tạo mới document rác bằng .set({ merge: true })
         if (uDoc.exists) {
-          await uRef.update({
+          const updateObj = {
             lastStreakRunAt: getVietnamTime(),
-            lastStreakStatus: 'error',
+            lastStreakStatus: isExpired ? 'token_expired' : 'error',
             lastStreakError: error.message
-          });
+          };
+          if (isExpired) {
+            updateObj.idToken = null;
+            updateObj.refreshToken = null;
+            updateObj.isSessionExpired = true;
+            updateObj.autoStreak = false;
+          }
+          await uRef.update(updateObj);
         }
       } catch (e) {
         // ignore
       }
     }
 
-    return res.status(500).json({
+    return res.status(isExpired ? 401 : 500).json({
       success: false,
+      isSessionExpired: isExpired,
       message: error.message || 'Xảy ra lỗi trong quá trình chạy chuỗi.'
     });
   }

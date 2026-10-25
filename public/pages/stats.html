@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#FFE091">
-  <meta name="description" content="Thống kê thời gian thực và nhật ký hoạt động hệ thống Locket Streak.">
+  <meta name="description" content="Thống kê dữ liệu và nhật ký hoạt động hệ thống Locket Streak.">
 
   <!-- Desktop PWA & Android Homescreen -->
   <meta name="application-name" content="Locket Streak">
@@ -26,11 +26,11 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Thống Kê Hệ Thống • Locket Streak">
-  <meta property="og:description" content="Bảng điều khiển chỉ số và nhật ký hoạt động thời gian thực của Locket Streak.">
+  <meta property="og:description" content="Bảng điều khiển chỉ số và nhật ký hoạt động của Locket Streak.">
   <meta property="og:image" content="/assets/preview.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Thống Kê Hệ Thống • Locket Streak">
-  <meta name="twitter:description" content="Bảng điều khiển chỉ số và nhật ký hoạt động thời gian thực của Locket Streak.">
+  <meta name="twitter:description" content="Bảng điều khiển chỉ số và nhật ký hoạt động của Locket Streak.">
   <meta name="twitter:image" content="/assets/preview.png">
 
   <!-- Google tag (gtag.js) -->
@@ -228,8 +228,11 @@
     /* Bottom 2-Column Section (Logs on Left, Leaderboard on Right) */
     .dashboard-columns {
       display: grid;
-      grid-template-columns: 1.25fr 1fr;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
       gap: 22px;
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
     }
 
     .panel-heading-row {
@@ -256,11 +259,31 @@
       display: flex;
       flex-direction: column;
       height: 480px;
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .terminal-window.is-half {
+      height: 220px;
+    }
+
+    .terminal-sub-title {
+      font-size: 11px;
+      font-family: ui-monospace, 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+      color: #64748B;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .log-panel-block + .log-panel-block {
+      margin-top: 18px;
     }
 
     .terminal-header {
       background: #1A1C25;
-      padding: 12px 18px;
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -286,12 +309,16 @@
     .terminal-body {
       padding: 14px 16px;
       overflow-y: auto;
+      overflow-x: hidden;
       font-family: ui-monospace, 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
       font-size: 11px;
       line-height: 1.5;
       letter-spacing: -0.1px;
       color: #CBD5E1;
       flex: 1;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
     }
@@ -541,12 +568,22 @@
         margin-bottom: 24px;
       }
       .dashboard-columns {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 22px;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
       }
       .terminal-window,
       .right-card-panel {
         height: 420px;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      .terminal-window.is-half {
+        height: 200px;
       }
     }
 
@@ -604,6 +641,12 @@
       .right-card-panel {
         height: 380px;
         border-radius: 16px;
+      }
+      .terminal-window.is-half {
+        height: 185px;
+      }
+      .log-panel-block + .log-panel-block {
+        margin-top: 16px;
       }
       .terminal-header {
         padding: 10px 14px;
@@ -724,7 +767,7 @@
       <div class="page-header-row">
         <div>
           <h1 class="page-title">Dữ liệu hệ thống trên WebApp</h1>
-          <p class="page-subtitle">Theo dõi trạng thái duy trì, bảo vệ chuỗi và lịch sử hoạt động thời gian thực.</p>
+          <p class="page-subtitle">Theo dõi trạng thái duy trì, bảo vệ chuỗi và lịch sử hoạt động hệ thống.</p>
         </div>
       </div>
 
@@ -863,48 +906,80 @@
       <!-- 2 Columns: Real-time Terminal Log (Left) & Top Ranking (Right) -->
       <div class="dashboard-columns">
 
-        <!-- Left Column: Real-time Terminal Log (Exact Screenshot Replica) -->
-        <div>
-          <div class="panel-heading-row">
-            <h2 class="section-title">Real-time Activity Log</h2>
-          </div>
-
-          <div class="terminal-window">
-            <!-- Terminal Header (Mac Window Dots) -->
-            <div class="terminal-header">
-              <div class="terminal-dots">
-                <span class="terminal-dot dot-red"></span>
-                <span class="terminal-dot dot-yellow"></span>
-                <span class="terminal-dot dot-green"></span>
-              </div>
+        <!-- Left Column: 2 Terminal Windows (Streak Log & New Members Log) -->
+        <div class="logs-column-wrap">
+          <!-- Block 1: Nhật ký duy trì chuỗi -->
+          <div class="log-panel-block">
+            <div class="panel-heading-row" style="margin-bottom: 10px;">
+              <h2 class="section-title">Nhật ký duy trì chuỗi</h2>
             </div>
 
-            <!-- Terminal Body (Monospace Live Logs) -->
-            <div class="terminal-body" id="terminal-log-feed">
-              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
-                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 250px; height: 11px;"></span>
+            <div class="terminal-window is-half">
+              <!-- Terminal Header (Mac Window Dots) -->
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <span class="terminal-dot dot-red"></span>
+                  <span class="terminal-dot dot-yellow"></span>
+                  <span class="terminal-dot dot-green"></span>
+                </div>
+                <span class="terminal-sub-title">streak-activity.log</span>
               </div>
-              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
-                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 200px; height: 11px;"></span>
+
+              <!-- Terminal Body (Monospace Live Logs) -->
+              <div class="terminal-body" id="terminal-log-feed">
+                <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px; overflow: hidden; width: 100%;">
+                  <span class="skeleton-dark" style="width: 60px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="width: 45px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="flex: 1; max-width: 60%; height: 11px;"></span>
+                </div>
+                <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px; overflow: hidden; width: 100%;">
+                  <span class="skeleton-dark" style="width: 60px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="width: 45px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="flex: 1; max-width: 50%; height: 11px;"></span>
+                </div>
+                <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px; overflow: hidden; width: 100%;">
+                  <span class="skeleton-dark" style="width: 60px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="width: 45px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="flex: 1; max-width: 70%; height: 11px;"></span>
+                </div>
               </div>
-              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
-                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 230px; height: 11px;"></span>
+            </div>
+          </div>
+
+          <!-- Block 2: Nhật ký người dùng mới tham gia -->
+          <div class="log-panel-block">
+            <div class="panel-heading-row" style="margin-bottom: 10px;">
+              <h2 class="section-title">Người dùng mới tham gia</h2>
+            </div>
+
+            <div class="terminal-window is-half">
+              <!-- Terminal Header (Mac Window Dots) -->
+              <div class="terminal-header">
+                <div class="terminal-dots">
+                  <span class="terminal-dot dot-red"></span>
+                  <span class="terminal-dot dot-yellow"></span>
+                  <span class="terminal-dot dot-green"></span>
+                </div>
+                <span class="terminal-sub-title">new-members.log</span>
               </div>
-              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
-                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 270px; height: 11px;"></span>
-              </div>
-              <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px;">
-                <span class="skeleton-dark" style="width: 120px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 55px; height: 11px;"></span>
-                <span class="skeleton-dark" style="width: 190px; height: 11px;"></span>
+
+              <!-- Terminal Body (Monospace New Users Logs) -->
+              <div class="terminal-body" id="terminal-member-feed">
+                <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px; overflow: hidden; width: 100%;">
+                  <span class="skeleton-dark" style="width: 60px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="width: 35px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="flex: 1; max-width: 55%; height: 11px;"></span>
+                </div>
+                <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px; overflow: hidden; width: 100%;">
+                  <span class="skeleton-dark" style="width: 60px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="width: 35px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="flex: 1; max-width: 65%; height: 11px;"></span>
+                </div>
+                <div class="log-line" style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px; overflow: hidden; width: 100%;">
+                  <span class="skeleton-dark" style="width: 60px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="width: 35px; height: 11px; flex-shrink: 0;"></span>
+                  <span class="skeleton-dark" style="flex: 1; max-width: 45%; height: 11px;"></span>
+                </div>
               </div>
             </div>
           </div>
@@ -1124,7 +1199,8 @@
         updateMeter('meter-max-streak', 10);
 
         // 2. Điền Terminal Logs (CHỈ TÊN VÀ USERNAME, TUYỆT ĐỐI KHÔNG EMAIL / UID)
-        renderTerminalLogs(data.recentLogs || []);
+        renderTerminalLogs(data.streakLogs || data.recentLogs || []);
+        renderMemberLogs(data.newMemberLogs || []);
 
         // 3. Điền Top Leaderboard (CHỈ TÊN VÀ USERNAME)
         renderLeaderboard(data.topStreaks || [], s.maxStreak || 1);
@@ -1142,11 +1218,21 @@
               </div>
             `;
           }
+          const memberFeed = document.getElementById('terminal-member-feed');
+          if (memberFeed) {
+            memberFeed.innerHTML = `
+              <div class="log-line" style="color: #F87171;">
+                <span class="log-time">[${new Date().toLocaleTimeString('vi-VN')}]</span>
+                <span style="color: #EF4444; font-weight: 700;">ERROR:</span>
+                <span>Không thể nạp danh sách thành viên mới.</span>
+              </div>
+            `;
+          }
         }
       }
     }
 
-    // Render Terminal Logs
+    // Render Terminal Logs (Nhật ký chuỗi)
     function renderTerminalLogs(logs) {
       const feed = document.getElementById('terminal-log-feed');
       if (!feed) return;
@@ -1162,11 +1248,10 @@
       } else {
         // Duyệt qua danh sách logs thực tế từ API
         logs.forEach(l => {
-        const timeStr = l.runAt ? `[${escapeHtml(l.runAt)}]` : `[Gần đây]`;
-        const nameToDisplay = l.username ? escapeHtml(l.username) : escapeHtml(l.displayName);
-        const userDisplay = `<span class="log-user" title="${escapeHtml(l.displayName)}">${nameToDisplay}</span>`;
+          const timeStr = l.runAt ? `[${escapeHtml(l.runAt)}]` : `[Gần đây]`;
+          const nameToDisplay = l.username ? escapeHtml(l.username) : escapeHtml(l.displayName);
+          const userDisplay = `<span class="log-user" title="${escapeHtml(l.displayName)}">${nameToDisplay}</span>`;
 
-        if (l.action === 'streak_run') {
           lines.push(`
             <div class="log-line">
               <span class="log-time">${timeStr}</span>
@@ -1174,16 +1259,40 @@
               <span>Duy trì thành công chuỗi <strong>${l.streakCount} ngày</strong> cho ${userDisplay}</span>
             </div>
           `);
-        } else {
+        });
+      }
+
+      feed.innerHTML = lines.join('');
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    // Render Terminal Log Người dùng mới tham gia
+    function renderMemberLogs(members) {
+      const feed = document.getElementById('terminal-member-feed');
+      if (!feed) return;
+
+      const lines = [];
+
+      if (!members || members.length === 0) {
+        lines.push(`
+          <div class="log-line" style="color: #64748B;">
+            <span>Chưa ghi nhận người dùng mới nào gần đây.</span>
+          </div>
+        `);
+      } else {
+        members.forEach(m => {
+          const timeStr = m.joinedAt ? `[${escapeHtml(m.joinedAt)}]` : `[Gần đây]`;
+          const nameToDisplay = m.username ? escapeHtml(m.username) : escapeHtml(m.displayName);
+          const userDisplay = `<span class="log-user" title="${escapeHtml(m.displayName)}">${nameToDisplay}</span>`;
+
           lines.push(`
             <div class="log-line">
               <span class="log-time">${timeStr}</span>
-              <span class="log-status-info">INFO:</span>
-              <span>Tài khoản mới kết nối vào hệ thống: ${userDisplay}</span>
+              <span class="log-status-info">JOIN:</span>
+              <span>Chào mừng ${userDisplay} vừa tham gia hệ thống</span>
             </div>
           `);
-        }
-      });
+        });
       }
 
       feed.innerHTML = lines.join('');
@@ -1235,8 +1344,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       fetchStatsData();
-      // Tự động làm mới mỗi 25 giây
-      setInterval(fetchStatsData, 25000);
     });
   </script>
 </body>
