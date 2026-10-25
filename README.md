@@ -128,8 +128,7 @@ Hệ thống cung cấp danh mục API hoàn chỉnh phục vụ xác thực, qu
 | `/api/auto` | `POST` | Client Session (Session Secret) | Bật hoặc tắt trạng thái tự động giữ chuỗi hàng ngày |
 | `/api/stats` | `GET` | Public | Thống kê chỉ số hệ thống, kỷ lục chuỗi & nhật ký hoạt động (ẩn danh) |
 | `/api/push` | `GET` / `POST` | Client Session | Lấy VAPID public key và đăng ký thiết bị nhận Web Push |
-| `/api/telegram` | `GET` / `POST` | Client Session | Thiết lập Chat ID hoặc liên kết Bot Telegram nhận thông báo |
-| `/api/discord` | `POST` | Client Session | Cấu hình Discord Webhook URL nhận thông báo kết quả |
+| `/api/webhook` | `GET` / `POST` | Client Session | Quản lý liên kết thông báo đa kênh (hỗ trợ Telegram Bot & Discord Webhook) |
 | `/api/cron` | `GET` / `POST` | Bearer Token (`CRON_SECRET`) | Quét toàn bộ tài khoản đến giờ chạy và chuyển tiếp sang worker |
 | `/api/run` | `POST` | Public (UID / Cooldown) | Thực thi duy trì, khôi phục chuỗi & gửi thông báo đa kênh |
 | `/api/logout` | `POST` | Client Session (Session Secret) | Đăng xuất thiết bị (gỡ khỏi máy, bot vẫn chạy auto trên server) |
