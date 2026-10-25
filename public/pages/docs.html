@@ -262,44 +262,6 @@
   -H "Content-Type: application/json" \
   -d '{"uid": "YOUR_LOCKET_UID"}'</code></pre>
         </div>
-
-        <!-- 2. GET /api/stats -->
-        <div class="shortcut-card" style="border-radius: 24px; padding: 28px;">
-          <div style="margin-bottom: 8px;">
-            <span class="http-method" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-weight: 800; font-size: 11px; padding: 4px 9px; border-radius: 6px; letter-spacing: 0.5px;">GET</span>
-            <span class="endpoint-badge">/api/stats</span>
-          </div>
-          <p class="card-desc" style="margin-bottom: 14px;">Lấy toàn bộ số liệu thống kê thời gian thực của hệ thống Locket Streak bao gồm tổng tài khoản, tài khoản bật Auto, chuỗi bảo vệ, kỷ lục cao nhất, bảng xếp hạng và nhật ký hoạt động. Dữ liệu công khai và cam kết bảo vệ quyền riêng tư tuyệt đối (chỉ hiển thị username, không để lộ Email hay UID).</p>
-
-          <div class="param-label">Response 200 (Thành công) <span class="badge-status status-200">200 OK</span></div>
-          <pre class="code-box"><code>{
-  "success": true,
-  "cached": false,
-  "data": {
-    "summary": {
-      "totalAccounts": 8,
-      "maintainedTodayCount": 4,
-      "todayPercentage": 50,
-      "totalStreakSum": 222,
-      "maxStreak": 207,
-      "maxStreakUser": {
-        "displayName": "Huy Vũ",
-        "username": "@huyvu_2512",
-        "avatarUrl": "https://...",
-        "streakCount": 207
-      },
-      "autoStreakCount": 2
-    },
-    "topStreaks": [ ... ],
-    "recentLogs": [ ... ],
-    "serverTime": "2026-10-23 14:40:00"
-  }
-}</code></pre>
-
-          <div class="param-label">Ví dụ cURL</div>
-          <pre class="code-box"><code>curl -X GET https://YOUR_DOMAIN/api/stats</code></pre>
-        </div>
-
       </div>
     </section>
   </main>
