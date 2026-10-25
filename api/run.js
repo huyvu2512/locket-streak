@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import webpush from 'web-push';
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 import { getValidToken, getVietnamTodayNumber, getVietnamTime, formatVietnamDateTime, getRandomLocketHeaders, getRandomDelay, LOCKET_API_URL, LOCKET_STORAGE_URL, LOCKET_STORAGE_BUCKET } from './verify.js';
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT) {

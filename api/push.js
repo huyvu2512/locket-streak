@@ -1,6 +1,6 @@
 import webpush from 'web-push';
 import crypto from 'crypto';
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';

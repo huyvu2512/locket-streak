@@ -1,4 +1,4 @@
-import { db } from '../api/db.js';
+import { db } from '../lib/db.js';
 
 /**
  * Script Bảo Trì & Dọn Dẹp Cơ Sở Dữ Liệu (Firestore Cleanup & Integrity Check)

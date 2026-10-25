@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 import { executeStreakForUser } from './run.js';
 import { getVietnamTime, getRandomDelay } from './verify.js';
 

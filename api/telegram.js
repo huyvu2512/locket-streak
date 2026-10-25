@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 import { formatVietnamDateTime } from './verify.js';
 
 /**

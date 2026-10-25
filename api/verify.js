@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 
 export const LOCKET_FIREBASE_KEY = process.env.LOCKET_FIREBASE_KEY || '';
 export const LOCKET_API_URL = (process.env.LOCKET_API_URL || '').replace(/\/+$/, '');

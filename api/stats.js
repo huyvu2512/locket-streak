@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 import { getVietnamTodayNumber, getVietnamTime } from './verify.js';
 
 // Bộ nhớ đệm (Cache) 30 giây để giảm tải truy vấn Firestore

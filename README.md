@@ -74,11 +74,10 @@ locket-streak/
 ├── .github/                      # Cấu hình GitHub Actions
 │   └── workflows/
 │       └── streak.yml            # Workflow tự động hóa duy trì chuỗi định kỳ
-├── api/                          # Backend API & Serverless Endpoints
+├── api/                          # Backend API & Serverless Endpoints (11 routes)
 │   ├── accounts.js               # Quản lý danh sách tài khoản liên kết
 │   ├── auto.js                   # Bật / tắt chế độ tự động hóa chuỗi
 │   ├── cron.js                   # Điều phối hàng đợi quét tài khoản cần chạy
-│   ├── db.js                     # Khởi tạo kết nối Firebase Admin SDK
 │   ├── discord.js                # Quản lý cấu hình Discord Webhook
 │   ├── logout.js                 # Xử lý đăng xuất phiên làm việc
 │   ├── push.js                   # Quản lý VAPID key và đăng ký Web Push
@@ -87,6 +86,8 @@ locket-streak/
 │   ├── streak.js                 # Tra cứu thông số, lịch sử và trạng thái chuỗi thời gian thực
 │   ├── telegram.js               # Quản lý cấu hình Telegram Bot & Webhook
 │   └── verify.js                 # Xác thực tài khoản Locket & làm mới Token
+├── lib/                          # Thư viện & Module nội bộ dùng chung
+│   └── db.js                     # Khởi tạo kết nối Firebase Admin SDK Cloud Firestore
 ├── public/                       # Giao diện người dùng & tài nguyên tĩnh
 │   ├── assets/                   # Biểu tượng, logo, preview minh họa
 │   ├── pages/                    # Các trang con độc lập

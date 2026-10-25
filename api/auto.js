@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 
 /**
  * API Bật / Tắt Tự Động Giữ Chuỗi (Auto Streak)

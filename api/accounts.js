@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db } from '../lib/db.js';
 import { getValidToken, getVietnamTodayNumber, getRandomLocketHeaders, getRandomDelay, LOCKET_API_URL } from './verify.js';
 
 /**
