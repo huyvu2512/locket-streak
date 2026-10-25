@@ -3,6 +3,8 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/api/telegram", "destination": "/api/webhook?channel=telegram" },
+    { "source": "/api/discord", "destination": "/api/webhook?channel=discord" },
     { "source": "/dashboard", "destination": "/pages/dashboard.html" },
     { "source": "/shortcuts", "destination": "/pages/shortcuts.html" },
     { "source": "/stats", "destination": "/pages/stats.html" },

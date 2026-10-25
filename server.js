@@ -6,8 +6,7 @@ import dotenv from 'dotenv';
 
 import verifyHandler from './api/verify.js';
 import streakHandler from './api/streak.js';
-import telegramHandler from './api/telegram.js';
-import discordHandler from './api/discord.js';
+import webhookHandler from './api/webhook.js';
 import autoHandler from './api/auto.js';
 import runHandler from './api/run.js';
 import cronHandler from './api/cron.js';
@@ -118,8 +117,9 @@ app.get('/sw.js', (req, res) => {
 app.all('/api/verify', verifyHandler);
 app.all('/api/settings', verifyHandler); // Alias gộp vào verifyHandler
 app.all('/api/streak', streakHandler);
-app.all('/api/telegram', telegramHandler);
-app.all('/api/discord', discordHandler);
+app.all('/api/telegram', webhookHandler);
+app.all('/api/discord', webhookHandler);
+app.all('/api/webhook', webhookHandler);
 app.all('/api/auto', autoHandler);
 app.all('/api/run', runHandler);
 app.all('/api/cron', cronHandler);
