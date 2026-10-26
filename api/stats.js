@@ -45,6 +45,7 @@ export default async function statsHandler(req, res) {
         streakAchievedAt: data.streakAchievedAt || (isMaintained ? data.lastStreakRunAt : null),
         autoStreak: Boolean(data.autoStreak),
         firstLoginAt: data.firstLoginAt || null,
+        lastLoginAt: data.lastLoginAt || null,
         isMaintainedToday: isMaintained
       });
     });
@@ -100,25 +101,43 @@ export default async function statsHandler(req, res) {
       }
     };
 
-    // 1. Nhật ký duy trì chuỗi gần đây (Ưu tiên hiển thị mốc hoàn thành chuỗi streakAchievedAt)
-    const streakLogs = users
-      .filter(u => u.streakAchievedAt || u.lastStreakRunAt)
-      .sort((a, b) => {
-        const timeB = b.streakAchievedAt || b.lastStreakRunAt;
-        const timeA = a.streakAchievedAt || a.lastStreakRunAt;
-        return parseTime(timeB) - parseTime(timeA);
-      })
-      .slice(0, 15)
-      .map(u => ({
-        displayName: u.displayName || 'Người dùng Locket',
-        username: u.username ? `@${String(u.username).replace(/^@+/, '')}` : null,
-        avatarUrl: u.avatarUrl || null,
-        streakCount: Number(u.streakCount) || 0,
-        runAt: u.streakAchievedAt || u.lastStreakRunAt,
-        action: 'streak_run'
-      }));
+    // 1. Nhật ký duy trì chuỗi & hoạt động (bao gồm cả SUCCESS duy trì chuỗi và ACTIVE đăng nhập lại)
+    const streakActivityList = [];
 
-    // 2. Nhật ký người dùng mới tham gia (Sắp xếp theo firstLoginAt mới nhất)
+    users.forEach(u => {
+      // Sự kiện duy trì chuỗi thành công
+      const runTime = u.streakAchievedAt || u.lastStreakRunAt;
+      if (runTime) {
+        streakActivityList.push({
+          displayName: u.displayName || 'Người dùng Locket',
+          username: u.username ? `@${String(u.username).replace(/^@+/, '')}` : null,
+          avatarUrl: u.avatarUrl || null,
+          streakCount: Number(u.streakCount) || 0,
+          runAt: runTime,
+          time: runTime,
+          action: 'streak_run'
+        });
+      }
+
+      // Sự kiện đăng nhập/hoạt động lại hệ thống (ACTIVE)
+      if (u.lastLoginAt && u.lastLoginAt !== u.firstLoginAt) {
+        streakActivityList.push({
+          displayName: u.displayName || 'Người dùng Locket',
+          username: u.username ? `@${String(u.username).replace(/^@+/, '')}` : null,
+          avatarUrl: u.avatarUrl || null,
+          streakCount: Number(u.streakCount) || 0,
+          runAt: u.lastLoginAt,
+          time: u.lastLoginAt,
+          action: 'active'
+        });
+      }
+    });
+
+    const streakLogs = streakActivityList
+      .sort((a, b) => parseTime(b.time) - parseTime(a.time))
+      .slice(0, 20);
+
+    // 2. Nhật ký thành viên mới tham gia (từ firstLoginAt)
     const newMemberLogs = users
       .filter(u => u.firstLoginAt)
       .sort((a, b) => parseTime(b.firstLoginAt) - parseTime(a.firstLoginAt))
@@ -127,8 +146,8 @@ export default async function statsHandler(req, res) {
         displayName: u.displayName || 'Người dùng Locket',
         username: u.username ? `@${String(u.username).replace(/^@+/, '')}` : null,
         avatarUrl: u.avatarUrl || null,
-        joinedAt: u.firstLoginAt,
-        action: 'registered'
+        time: u.firstLoginAt,
+        action: 'joined'
       }));
 
     const result = {

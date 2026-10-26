@@ -436,21 +436,21 @@
     }
 
     .rank-badge-1 {
-      background: rgba(245, 158, 11, 0.2);
-      color: #B45309;
-      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: #FFE091;
+      color: #000000;
+      border: 1px solid rgba(0, 0, 0, 0.12);
     }
 
     .rank-badge-2 {
-      background: rgba(245, 158, 11, 0.14);
-      color: #D97706;
-      border: 1px solid rgba(245, 158, 11, 0.25);
+      background: #F1F5F9;
+      color: #475569;
+      border: 1px solid #E2E8F0;
     }
 
     .rank-badge-3 {
-      background: rgba(245, 158, 11, 0.1);
-      color: #D97706;
-      border: 1px solid rgba(245, 158, 11, 0.2);
+      background: #FFEDD5;
+      color: #C2410C;
+      border: 1px solid #FED7AA;
     }
 
     .rank-badge-other {
@@ -482,20 +482,21 @@
       margin-top: 1px;
     }
 
-    /* Smooth Horizontal Progress Bar (Light to Dark Gradient) */
+    /* Modern Capsule Progress Bar (Vibrant Locket Flame Gradient) */
     .bar-track {
       flex: 1;
-      height: 7px;
-      background: rgba(0, 0, 0, 0.06);
-      border-radius: 4px;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 999px;
       overflow: hidden;
       position: relative;
     }
 
     .bar-fill {
       height: 100%;
-      border-radius: 4px;
-      background: linear-gradient(90deg, #FDE68A 0%, #F59E0B 55%, #D97706 100%);
+      border-radius: 999px;
+      background: linear-gradient(90deg, #FF9500 0%, #FF453A 100%);
+      box-shadow: 0 1px 4px rgba(255, 69, 58, 0.28);
       transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -946,10 +947,10 @@
             </div>
           </div>
 
-          <!-- Block 2: Nhật ký người dùng mới tham gia -->
+          <!-- Block 2: Thành viên mới tham gia -->
           <div class="log-panel-block">
             <div class="panel-heading-row" style="margin-bottom: 10px;">
-              <h2 class="section-title">Người dùng mới tham gia</h2>
+              <h2 class="section-title">Thành viên mới tham gia</h2>
             </div>
 
             <div class="terminal-window is-half">
@@ -1204,7 +1205,6 @@
 
         // 3. Điền Top Leaderboard (CHỈ TÊN VÀ USERNAME)
         renderLeaderboard(data.topStreaks || [], s.maxStreak || 1);
-
       } catch (err) {
         console.warn('[Stats] Fetch error:', err.message);
         if (!hasLoadedData) {
@@ -1232,7 +1232,7 @@
       }
     }
 
-    // Render Terminal Logs (Nhật ký chuỗi)
+    // Render Terminal Logs (Nhật ký duy trì chuỗi & hoạt động hệ thống)
     function renderTerminalLogs(logs) {
       const feed = document.getElementById('terminal-log-feed');
       if (!feed) return;
@@ -1246,19 +1246,30 @@
           </div>
         `);
       } else {
-        // Duyệt qua danh sách logs thực tế từ API
+        // Duyệt qua danh sách logs thực tế từ API (gồm cả streak_run SUCCESS và active ACTIVE)
         logs.forEach(l => {
-          const timeStr = l.runAt ? `[${escapeHtml(l.runAt)}]` : `[Gần đây]`;
+          const rawTime = l.runAt || l.time;
+          const timeStr = rawTime ? `[${escapeHtml(rawTime)}]` : `[Gần đây]`;
           const nameToDisplay = l.username ? escapeHtml(l.username) : escapeHtml(l.displayName);
           const userDisplay = `<span class="log-user" title="${escapeHtml(l.displayName)}">${nameToDisplay}</span>`;
 
-          lines.push(`
-            <div class="log-line">
-              <span class="log-time">${timeStr}</span>
-              <span class="log-status-success">SUCCESS:</span>
-              <span>Duy trì thành công chuỗi <strong>${l.streakCount} ngày</strong> cho ${userDisplay}</span>
-            </div>
-          `);
+          if (l.action === 'active') {
+            lines.push(`
+              <div class="log-line">
+                <span class="log-time">${timeStr}</span>
+                <span class="log-status-info" style="color: #A855F7;">ACTIVE:</span>
+                <span>${userDisplay} vừa đăng nhập lại hệ thống</span>
+              </div>
+            `);
+          } else {
+            lines.push(`
+              <div class="log-line">
+                <span class="log-time">${timeStr}</span>
+                <span class="log-status-success">SUCCESS:</span>
+                <span>Duy trì thành công chuỗi <strong>${l.streakCount} ngày</strong> cho ${userDisplay}</span>
+              </div>
+            `);
+          }
         });
       }
 
@@ -1266,7 +1277,7 @@
       feed.scrollTop = feed.scrollHeight;
     }
 
-    // Render Terminal Log Người dùng mới tham gia
+    // Render Terminal Log Thành viên mới tham gia (từ firstLoginAt)
     function renderMemberLogs(members) {
       const feed = document.getElementById('terminal-member-feed');
       if (!feed) return;
@@ -1276,12 +1287,13 @@
       if (!members || members.length === 0) {
         lines.push(`
           <div class="log-line" style="color: #64748B;">
-            <span>Chưa ghi nhận người dùng mới nào gần đây.</span>
+            <span>Chưa ghi nhận thành viên mới nào gần đây.</span>
           </div>
         `);
       } else {
         members.forEach(m => {
-          const timeStr = m.joinedAt ? `[${escapeHtml(m.joinedAt)}]` : `[Gần đây]`;
+          const rawTime = m.time || m.joinedAt;
+          const timeStr = rawTime ? `[${escapeHtml(rawTime)}]` : `[Gần đây]`;
           const nameToDisplay = m.username ? escapeHtml(m.username) : escapeHtml(m.displayName);
           const userDisplay = `<span class="log-user" title="${escapeHtml(m.displayName)}">${nameToDisplay}</span>`;
 
@@ -1299,47 +1311,64 @@
       feed.scrollTop = feed.scrollHeight;
     }
 
-    // Render Bảng Xếp Hạng (Leaderboard)
+    // Render Bảng Xếp Hạng (Leaderboard) - Luôn cố định đủ 5 vị trí
     function renderLeaderboard(list, maxStreak) {
       const container = document.getElementById('leaderboard-container');
       if (!container) return;
 
-      if (!list || list.length === 0) {
-        container.innerHTML = `<div style="color: var(--color-muted); text-align: center; padding: 20px;">Chưa có dữ liệu xếp hạng</div>`;
-        return;
+      const safeMax = Math.max(1, maxStreak);
+      const safeList = list || [];
+      const rowsHtml = [];
+
+      for (let i = 0; i < 5; i++) {
+        const u = safeList[i];
+        const rank = i + 1;
+
+        if (u) {
+          let badgeClass = 'rank-badge-other';
+          if (rank === 1) {
+            badgeClass = 'rank-badge-1';
+          } else if (rank === 2) {
+            badgeClass = 'rank-badge-2';
+          } else if (rank === 3) {
+            badgeClass = 'rank-badge-3';
+          }
+
+          const pct = Math.max(8, Math.round((u.streakCount / safeMax) * 100));
+          const usernameHtml = u.username ? escapeHtml(u.username) : 'Người dùng Locket';
+
+          rowsHtml.push(`
+            <div class="rank-row">
+              <div class="rank-badge ${badgeClass}">${rank}</div>
+              <div class="user-info-col">
+                <div class="user-name-title" title="${escapeHtml(u.displayName)}">${escapeHtml(u.displayName)}</div>
+                <div class="user-handle-sub">${usernameHtml}</div>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width: ${pct}%;"></div>
+              </div>
+              <div class="rank-value" title="${u.streakCount} ngày">${formatCompactNumber(u.streakCount)}</div>
+            </div>
+          `);
+        } else {
+          // Render hàng placeholder rỗng cho rank chưa có người
+          rowsHtml.push(`
+            <div class="rank-row" style="opacity: 0.38;">
+              <div class="rank-badge rank-badge-other">${rank}</div>
+              <div class="user-info-col">
+                <div class="user-name-title" style="color: var(--color-muted); font-style: italic;">Vị trí còn trống</div>
+                <div class="user-handle-sub">Đang chờ thành viên...</div>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" style="width: 0%;"></div>
+              </div>
+              <div class="rank-value" style="color: var(--color-muted);">—</div>
+            </div>
+          `);
+        }
       }
 
-      const safeMax = Math.max(1, maxStreak);
-      const top5 = (list || []).slice(0, 5);
-
-      container.innerHTML = top5.map((u) => {
-        let badgeClass = 'rank-badge-other';
-
-        if (u.rank === 1) {
-          badgeClass = 'rank-badge-1';
-        } else if (u.rank === 2) {
-          badgeClass = 'rank-badge-2';
-        } else if (u.rank === 3) {
-          badgeClass = 'rank-badge-3';
-        }
-
-        const pct = Math.max(8, Math.round((u.streakCount / safeMax) * 100));
-        const usernameHtml = u.username ? escapeHtml(u.username) : 'Người dùng Locket';
-
-        return `
-          <div class="rank-row">
-            <div class="rank-badge ${badgeClass}">${u.rank}</div>
-            <div class="user-info-col">
-              <div class="user-name-title" title="${escapeHtml(u.displayName)}">${escapeHtml(u.displayName)}</div>
-              <div class="user-handle-sub">${usernameHtml}</div>
-            </div>
-            <div class="bar-track">
-              <div class="bar-fill" style="width: ${pct}%;"></div>
-            </div>
-            <div class="rank-value" title="${u.streakCount} ngày">${formatCompactNumber(u.streakCount)}</div>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = rowsHtml.join('');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
