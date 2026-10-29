@@ -85,16 +85,19 @@ body {
   right: 0;
   z-index: 1000;
   width: 100%;
-  background-color: var(--locket-gold, #FFE091) !important;
+  background-color: var(--locket-gold, #FFE091);
   border: none !important;
   box-shadow: none !important;
   outline: none !important;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .locket-header.is-scrolled {
-  background-color: var(--locket-gold, #FFE091) !important;
-  box-shadow: none !important;
-  border: none !important;
+  background-color: rgba(255, 224, 145, 0.94) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
 }
 
 .header-backdrop {
