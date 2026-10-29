@@ -1639,6 +1639,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  const locketHeader = document.querySelector('.locket-header');
+  if (locketHeader) {
+    const handleHeaderScroll = () => {
+      if (window.scrollY > 8) {
+        locketHeader.classList.add('is-scrolled');
+      } else {
+        locketHeader.classList.remove('is-scrolled');
+      }
+    };
+    window.addEventListener('scroll', handleHeaderScroll, { passive: true });
+    handleHeaderScroll();
+  }
+
   // Chặn triệt để cử chỉ Double-Tap để Zoom và Pinch-to-Zoom trên điện thoại
   let lastTouchEndTime = 0;
   document.addEventListener('touchend', (e) => {

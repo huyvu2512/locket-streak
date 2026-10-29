@@ -52,7 +52,14 @@
   touch-action: manipulation;
 }
 
-html,
+html {
+  background-color: var(--locket-gold);
+  overflow-x: clip;
+  max-width: 100vw;
+  width: 100%;
+  touch-action: manipulation;
+}
+
 body {
   background-color: var(--locket-gold);
   color: var(--color-black);
@@ -61,23 +68,38 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
   touch-action: manipulation;
+  padding-top: 66px;
 }
 
 /* ==========================================================================
    Header & Centered Navigation (Exact Locket.com Layout)
    ========================================================================== */
 .locket-header {
-  position: sticky;
+  position: fixed !important;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
-  background: transparent;
+  width: 100%;
+  background-color: rgba(255, 224, 145, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: none !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.035);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.locket-header.is-scrolled {
+  background-color: rgba(255, 224, 145, 0.95);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
 }
 
 .header-backdrop {
+  display: none !important;
   pointer-events: none;
   position: absolute;
   top: 0;
@@ -2269,6 +2291,10 @@ input:disabled+.slider {
 }
 
 @media (max-width: 640px) {
+  body {
+    padding-top: 58px;
+  }
+
   .dash-main {
     padding: 16px 14px 80px;
   }

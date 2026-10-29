@@ -324,6 +324,19 @@
           toggleMobileMenu(false);
         }
       });
+
+      const locketHeader = document.querySelector('.locket-header');
+      if (locketHeader) {
+        const handleHeaderScroll = () => {
+          if (window.scrollY > 8) {
+            locketHeader.classList.add('is-scrolled');
+          } else {
+            locketHeader.classList.remove('is-scrolled');
+          }
+        };
+        window.addEventListener('scroll', handleHeaderScroll, { passive: true });
+        handleHeaderScroll();
+      }
     })();
   </script>
 </body>
