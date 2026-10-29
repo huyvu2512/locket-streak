@@ -154,20 +154,24 @@ code {
   flex: 1;
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: clamp(8px, 2.5vw, 12px);
   text-decoration: none;
   color: var(--color-black);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .brand-logo-img {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
+  width: clamp(28px, 7.5vw, 38px);
+  height: clamp(28px, 7.5vw, 38px);
+  border-radius: clamp(8px, 2vw, 11px);
   object-fit: cover;
   display: block;
   flex-shrink: 0;
@@ -185,10 +189,18 @@ code {
 }
 
 .brand-name {
-  font-size: 26px;
+  font-size: clamp(17px, 4.8vw, 24px);
   font-weight: 850;
   letter-spacing: -0.025em;
   color: var(--color-black);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+@media (min-width: 1024px) {
+  .brand-name {
+    font-size: 26px;
+  }
 }
 
 /* Center Menu */
@@ -331,6 +343,16 @@ code {
   transform: translateY(0) rotate(-45deg);
 }
 
+/* Khóa cuộn toàn diện nền web khi mở Mobile Menu Drawer */
+html.menu-open,
+body.menu-open {
+  overflow: hidden !important;
+  height: 100vh !important;
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
 /* Drawer Container */
 .mobile-menu-drawer {
   position: fixed;
@@ -341,12 +363,14 @@ code {
   width: 100vw;
   max-width: 100vw;
   height: 100vh;
-  overflow-x: hidden;
-  z-index: 70;
+  overflow: hidden;
+  z-index: 990;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.15s ease-out, visibility 0.15s ease-out;
+  touch-action: none;
+  overscroll-behavior: none;
+  transition: opacity 0.18s ease-out, visibility 0.18s ease-out;
   will-change: opacity;
 }
 
@@ -355,17 +379,20 @@ code {
   opacity: 1;
   visibility: visible;
   touch-action: none;
+  overscroll-behavior: none;
 }
 
 .mobile-menu-backdrop {
   position: absolute;
   inset: 0;
   background-color: var(--locket-gold, #FFE091);
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .mobile-menu-content {
   position: relative;
-  z-index: 75;
+  z-index: 995;
   background: transparent;
   padding: 84px 24px 36px;
   max-width: 480px;
@@ -380,7 +407,8 @@ code {
   transform: translateY(-10px);
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
-  touch-action: pan-y;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .mobile-menu-drawer.is-open .mobile-menu-content {
@@ -875,14 +903,12 @@ code {
     display: none;
   }
 
-  .brand-logo-img {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
+  .brand-link {
+    white-space: nowrap !important;
   }
 
   .brand-name {
-    font-size: 22px;
+    white-space: nowrap !important;
   }
 
   /* Hero Section Mobile */

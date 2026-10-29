@@ -1584,7 +1584,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     mobileMenuDrawer.classList.toggle('is-open', isOpen);
     mobileMenuDrawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+
+    if (isOpen) {
+      document.body.classList.add('menu-open');
+      document.documentElement.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+      document.documentElement.classList.remove('menu-open');
+    }
+  }
+
+  if (mobileMenuDrawer) {
+    mobileMenuDrawer.addEventListener('touchmove', (e) => {
+      if (mobileMenuDrawer.classList.contains('is-open')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
   }
 
   if (mobileMenuBtn) {
