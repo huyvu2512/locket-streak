@@ -128,7 +128,7 @@ body {
 
 .locket-nav {
   position: relative;
-  z-index: 90;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -249,12 +249,12 @@ body {
 .mobile-toggle-wrap {
   display: none;
   position: relative;
-  z-index: 95;
+  z-index: 1005;
 }
 
 .mobile-menu-btn {
   position: relative;
-  z-index: 100;
+  z-index: 1010;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -334,7 +334,7 @@ body.menu-open {
 .mobile-menu-drawer {
   position: fixed;
   inset: 0;
-  z-index: 990;
+  z-index: 70;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -355,6 +355,7 @@ body.menu-open {
 .mobile-menu-backdrop {
   position: absolute;
   inset: 0;
+  z-index: 71;
   background-color: var(--locket-gold, #FFE091);
   touch-action: none;
   overscroll-behavior: none;
@@ -362,7 +363,7 @@ body.menu-open {
 
 .mobile-menu-content {
   position: relative;
-  z-index: 995;
+  z-index: 75;
   background: transparent;
   padding: 84px 24px 36px;
   max-width: 480px;
